@@ -1,20 +1,16 @@
 import Hapi from "@hapi/hapi";
+import statusPlugin from "./plugins/status";
 
 const server: Hapi.Server = Hapi.server({
   port: process.env.PORT || 3000,
   host: process.env.HOST || "localhost",
 });
 
-export async function createServer(): Promise<Hapi.Server> {
-  server.route({
-    method: "GET",
-    path: "/",
-    handler: (_, h: Hapi.ResponseToolkit) => {
-      return h.response({ up: true }).code(200);
-    },
-  });
-  await server.initialize();
+const plugins: Hapi.Plugin<any>[] = [statusPlugin];
 
+export async function createServer(): Promise<Hapi.Server> {
+  await server.register(plugins);
+  await server.initialize();
   return server;
 }
 
