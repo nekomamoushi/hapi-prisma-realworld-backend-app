@@ -7,7 +7,9 @@
   "license": "ISC",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn index.ts"
+    "dev": "ts-node-dev --respawn index.ts",
+    "postgres:start": "docker-compose up -d",
+    "postgres:stop": "docker-compose down"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.0",
