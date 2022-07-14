@@ -1,12 +1,13 @@
 import Hapi from "@hapi/hapi";
 import statusPlugin from "./plugins/status";
+import tagsPlugin from "./plugins/tags";
 
 const server: Hapi.Server = Hapi.server({
   port: process.env.PORT || 3000,
   host: process.env.HOST || "localhost",
 });
 
-const plugins: Hapi.Plugin<any>[] = [statusPlugin];
+const plugins: Hapi.Plugin<any>[] = [statusPlugin, tagsPlugin];
 
 export async function createServer(): Promise<Hapi.Server> {
   await server.register(plugins);
