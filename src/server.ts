@@ -1,4 +1,5 @@
 import Hapi from "@hapi/hapi";
+import prismaPlugin from "./plugins/prisma";
 import statusPlugin from "./plugins/status";
 import tagsPlugin from "./plugins/tags";
 
@@ -7,7 +8,7 @@ const server: Hapi.Server = Hapi.server({
   host: process.env.HOST || "localhost",
 });
 
-const plugins: Hapi.Plugin<any>[] = [statusPlugin, tagsPlugin];
+const plugins: Hapi.Plugin<any>[] = [statusPlugin, prismaPlugin, tagsPlugin];
 
 export async function createServer(): Promise<Hapi.Server> {
   await server.register(plugins);
