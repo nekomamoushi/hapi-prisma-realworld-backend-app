@@ -11,7 +11,7 @@ const AUTHENTICATION_TOKEN_EXPIRATION_HOURS = 1;
 interface UserPayload {
   user: {
     email: string;
-    username: string;
+    username?: string;
     password: string;
   };
 }
@@ -19,29 +19,50 @@ interface UserPayload {
 const userPayloadValidator = Joi.object({
   user: Joi.object({
     email: Joi.string().required(),
-    username: Joi.string().required(),
+    username: Joi.string().alter({
+      register: (schema) => schema.required(),
+      login: (schema) => schema.optional(),
+    }),
     password: Joi.string().required(),
   }),
 });
 
+const registerUserValidator = userPayloadValidator.tailor("register");
+const loginUserValidator = userPayloadValidator.tailor("login");
+
 const usersPlugin: Hapi.Plugin<any> = {
   name: "users",
   register: async function (server: Hapi.Server) {
-    server.route({
-      method: "POST",
-      path: "/users",
-      handler: registerUserHandler,
-      options: {
-        validate: {
-          payload: userPayloadValidator,
-          failAction: (request, h, err) => {
-            // show validation errors to user
-            // https://github.com/hapijs/hapi/issues/3706
-            throw err;
+    server.route([
+      {
+        method: "POST",
+        path: "/users",
+        handler: registerUserHandler,
+        options: {
+          validate: {
+            payload: registerUserValidator,
+            failAction: (request, h, err) => {
+              // show validation errors to user
+              // https://github.com/hapijs/hapi/issues/3706
+              throw err;
+            },
           },
         },
       },
-    });
+      {
+        method: "POST",
+        path: "/users/login",
+        handler: loginUserHandler,
+        options: {
+          validate: {
+            payload: loginUserValidator,
+            failAction: (request, h, err) => {
+              throw err;
+            },
+          },
+        },
+      },
+    ]);
   },
 };
 
@@ -95,6 +116,47 @@ async function registerUserHandler(
   } catch (err: any) {
     request.log("error", err);
     return Boom.badImplementation("failed to register user");
+  }
+}
+
+async function loginUserHandler(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const {
+    user: { email, password },
+  } = request.payload as UserPayload;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw Boom.badRequest("user does not exists");
+    }
+
+    const validPassword = await bcrypt.compare(password, user?.password);
+    if (!validPassword) {
+      throw Boom.badRequest("password is not valid");
+    }
+
+    const token = generateJwtToken(user.id);
+
+    const response = {
+      email: user.email,
+      username: user.username,
+      bio: user.bio,
+      image: user.image,
+      token,
+    };
+    return h.response({ user: response }).code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    return Boom.badImplementation("failed to login user");
   }
 }
 
