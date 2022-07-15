@@ -14,3 +14,12 @@ model Tag {
   id  Int    @id @default(autoincrement())
   tag String @unique
 }
+
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  username String? @unique
+  password String
+  bio      String? @default("")
+  image    String? @default("")
+}
