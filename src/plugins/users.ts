@@ -2,11 +2,7 @@ import Hapi from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import Joi from "joi";
 import bcrypt from "bcrypt";
-import jwt, { SignOptions } from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "SUPER_SECRET_JWT_SECRET";
-const JWT_ALGORITHM = "HS256";
-const AUTHENTICATION_TOKEN_EXPIRATION_HOURS = 1;
+import { generateJwtToken } from "../helpers/jwt";
 
 interface UserPayload {
   user: {
@@ -32,6 +28,7 @@ const loginUserValidator = userPayloadValidator.tailor("login");
 
 const usersPlugin: Hapi.Plugin<any> = {
   name: "users",
+  dependencies: ["prisma", "hapi-auth-jwt2"],
   register: async function (server: Hapi.Server) {
     server.route([
       {
@@ -54,11 +51,22 @@ const usersPlugin: Hapi.Plugin<any> = {
         path: "/users/login",
         handler: loginUserHandler,
         options: {
+          auth: false,
           validate: {
             payload: loginUserValidator,
             failAction: (request, h, err) => {
               throw err;
             },
+          },
+        },
+      },
+      {
+        method: "GET",
+        path: "/user",
+        handler: getCurrentUser,
+        options: {
+          auth: {
+            strategy: "jwt",
           },
         },
       },
@@ -160,15 +168,10 @@ async function loginUserHandler(
   }
 }
 
-// Generate a signed JWT token with the tokenId in the payload
-function generateJwtToken(tokenId: number): string {
-  const jwtPayload = { tokenId };
-  const signInOptions: SignOptions = {
-    algorithm: JWT_ALGORITHM,
-    expiresIn: AUTHENTICATION_TOKEN_EXPIRATION_HOURS,
-    noTimestamp: true,
-  };
-  return jwt.sign(jwtPayload, JWT_SECRET, signInOptions);
+async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
+  const { user } = request.auth.credentials;
+
+  return h.response({ user: user }).code(200);
 }
 
 export default usersPlugin;

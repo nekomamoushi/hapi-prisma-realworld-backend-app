@@ -1,4 +1,6 @@
 import Hapi from "@hapi/hapi";
+import hapiAuthJwt2 from "hapi-auth-jwt2";
+import jwtPlugin from "./plugins/jwt";
 import prismaPlugin from "./plugins/prisma";
 import statusPlugin from "./plugins/status";
 import tagsPlugin from "./plugins/tags";
@@ -10,8 +12,10 @@ const server: Hapi.Server = Hapi.server({
 });
 
 const plugins: Hapi.Plugin<any>[] = [
+  hapiAuthJwt2,
   statusPlugin,
   prismaPlugin,
+  jwtPlugin,
   usersPlugin,
   tagsPlugin,
 ];

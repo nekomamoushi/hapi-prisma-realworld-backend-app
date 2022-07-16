@@ -17,6 +17,7 @@
     "@hapi/hapi": "^20.2.2",
     "@prisma/client": "^4.0.0",
     "bcrypt": "^5.0.1",
+    "hapi-auth-jwt2": "^10.2.0",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1"
   },
