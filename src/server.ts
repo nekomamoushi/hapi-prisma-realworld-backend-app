@@ -2,6 +2,7 @@ import Hapi from "@hapi/hapi";
 import hapiAuthJwt2 from "hapi-auth-jwt2";
 import jwtPlugin from "./plugins/jwt";
 import prismaPlugin from "./plugins/prisma";
+import profilesPlugin from "./plugins/profiles";
 import statusPlugin from "./plugins/status";
 import tagsPlugin from "./plugins/tags";
 import usersPlugin from "./plugins/users";
@@ -18,6 +19,7 @@ const plugins: Hapi.Plugin<any>[] = [
   jwtPlugin,
   usersPlugin,
   tagsPlugin,
+  profilesPlugin,
 ];
 
 export async function createServer(): Promise<Hapi.Server> {
