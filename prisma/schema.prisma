@@ -16,10 +16,12 @@ model Tag {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  username String? @unique
-  password String
-  bio      String? @default("")
-  image    String? @default("")
+  id        Int     @id @default(autoincrement())
+  email     String  @unique
+  username  String? @unique
+  password  String
+  bio       String? @default("")
+  image     String? @default("")
+  following User[]  @relation("Follows")
+  follower  User[]  @relation("Follows")
 }

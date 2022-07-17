@@ -57,6 +57,7 @@ const usersPlugin: Hapi.Plugin<any> = {
         path: "/users",
         handler: registerUserHandler,
         options: {
+          auth: false,
           validate: {
             payload: registerUserValidator,
             failAction: (request, h, err) => {
