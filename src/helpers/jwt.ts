@@ -28,18 +28,11 @@ export async function validateAPIToken(
     where: {
       id: decoded.tokenId,
     },
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      bio: true,
-      image: true,
-    },
   });
 
   let isValid = false;
   if (user) {
     isValid = true;
   }
-  return { isValid, credentials: { user } };
+  return { isValid, credentials: { userId: decoded.tokenId } };
 }

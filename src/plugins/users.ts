@@ -1,25 +1,42 @@
-import Hapi from "@hapi/hapi";
+import Hapi, { UserCredentials } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import Joi from "joi";
 import bcrypt from "bcrypt";
 import { generateJwtToken } from "../helpers/jwt";
+import { User } from "@prisma/client";
+
+declare module "@hapi/hapi" {
+  interface AuthCredentials {
+    userId: number;
+  }
+}
 
 interface UserPayload {
   user: {
     email: string;
-    username?: string;
+    username: string;
     password: string;
+    bio: string;
+    image: string;
   };
 }
 
 const userPayloadValidator = Joi.object({
   user: Joi.object({
-    email: Joi.string().required(),
+    email: Joi.string().alter({
+      register: (schema) => schema.required(),
+      login: (schema) => schema.required(),
+    }),
     username: Joi.string().alter({
       register: (schema) => schema.required(),
       login: (schema) => schema.optional(),
     }),
-    password: Joi.string().required(),
+    password: Joi.string().alter({
+      register: (schema) => schema.required(),
+      login: (schema) => schema.required(),
+    }),
+    bio: Joi.string().optional(),
+    image: Joi.string().optional(),
   }),
 });
 
@@ -169,9 +186,30 @@ async function loginUserHandler(
 }
 
 async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
-  const { user } = request.auth.credentials;
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials;
 
-  return h.response({ user: user }).code(200);
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) {
+      throw Boom.badImplementation("could not find user");
+    }
+
+    const response = {
+      email: user.email,
+      username: user.username,
+      bio: user.bio,
+      image: user.image,
+    };
+    return h.response({ user: response }).code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    return Boom.badImplementation("failed to get current user");
+  }
 }
 
 export default usersPlugin;
