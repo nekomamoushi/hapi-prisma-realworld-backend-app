@@ -1,4 +1,4 @@
-import Hapi, { UserCredentials } from "@hapi/hapi";
+import Hapi, { AuthCredentials, UserCredentials } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import Joi from "joi";
 import bcrypt from "bcrypt";
@@ -26,14 +26,17 @@ const userPayloadValidator = Joi.object({
     email: Joi.string().alter({
       register: (schema) => schema.required(),
       login: (schema) => schema.required(),
+      update: (schema) => schema.optional(),
     }),
     username: Joi.string().alter({
       register: (schema) => schema.required(),
       login: (schema) => schema.optional(),
+      update: (schema) => schema.optional(),
     }),
     password: Joi.string().alter({
       register: (schema) => schema.required(),
       login: (schema) => schema.required(),
+      update: (schema) => schema.optional(),
     }),
     bio: Joi.string().optional(),
     image: Joi.string().optional(),
@@ -42,6 +45,7 @@ const userPayloadValidator = Joi.object({
 
 const registerUserValidator = userPayloadValidator.tailor("register");
 const loginUserValidator = userPayloadValidator.tailor("login");
+const updateUserValidator = userPayloadValidator.tailor("update");
 
 const usersPlugin: Hapi.Plugin<any> = {
   name: "users",
@@ -86,6 +90,11 @@ const usersPlugin: Hapi.Plugin<any> = {
             strategy: "jwt",
           },
         },
+      },
+      {
+        method: "PUT",
+        path: "/user",
+        handler: updateCurrentUser,
       },
     ]);
   },
@@ -187,7 +196,7 @@ async function loginUserHandler(
 
 async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
-  const { userId } = request.auth.credentials;
+  const { userId } = request.auth.credentials as AuthCredentials;
 
   try {
     const user = await prisma.user.findUnique({
@@ -195,6 +204,7 @@ async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
         id: userId,
       },
     });
+
     if (!user) {
       throw Boom.badImplementation("could not find user");
     }
@@ -205,10 +215,52 @@ async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       bio: user.bio,
       image: user.image,
     };
+
     return h.response({ user: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
     return Boom.badImplementation("failed to get current user");
+  }
+}
+
+async function updateCurrentUser(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { user: userPayload } = request.payload as Partial<UserPayload>;
+
+  try {
+    let user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw Boom.notFound("could not found user");
+    }
+
+    let updatedUser = { ...user };
+    Object.assign(updatedUser, userPayload);
+    user = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: updatedUser,
+    });
+
+    const response = {
+      email: user.email,
+      username: user.username,
+      bio: user.bio,
+      image: user.image,
+    };
+    return h.response({ user: response }).code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    return Boom.badImplementation("failed to update current user");
   }
 }
 
