@@ -8,6 +8,9 @@ const tagsPlugin: Hapi.Plugin<any> = {
       method: "GET",
       path: "/tags",
       handler: getTagsHandler,
+      options: {
+        auth: false,
+      },
     });
   },
 };
