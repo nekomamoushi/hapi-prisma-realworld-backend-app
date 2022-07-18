@@ -1,20 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import prismaPlugin from "../src/plugins/prisma";
 
 const prisma = new PrismaClient();
 
 async function main() {
   await prisma.tag.deleteMany();
-
-  const tag = await prisma.tag.create({
-    data: {
-      tag: "react",
-    },
-    select: {
-      tag: true,
-    },
-  });
-
-  console.log(`Tag created: ${tag.tag}`);
+  await prisma.user.deleteMany();
 
   const tags = await prisma.tag.createMany({
     data: [
@@ -28,7 +19,30 @@ async function main() {
   const tagCount = await prisma.tag.aggregate({
     _count: true,
   });
-  console.log(`Tags count: ${tagCount._count}`);
+
+  const users = await prisma.user.createMany({
+    data: [
+      {
+        username: "germione",
+        email: "germione@prisma.com",
+        password: "passeword",
+      },
+      {
+        username: "jayee",
+        email: "jayee@prisma.com",
+        password: "passeword",
+      },
+      {
+        username: "nabo",
+        email: "nabooo@prisma.com",
+        password: "passeword",
+      },
+    ],
+  });
+
+  const userCount = await prisma.user.aggregate({
+    _count: true,
+  });
 }
 
 main()
