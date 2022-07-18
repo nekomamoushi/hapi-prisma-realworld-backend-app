@@ -1,37 +1,39 @@
-import Hapi, { AuthCredentials } from "@hapi/hapi";
+import Hapi, { AuthCredentials, ServerRoute } from "@hapi/hapi";
 import Boom from "@hapi/boom";
+
+const routes: ServerRoute[] = [
+  {
+    method: "GET",
+    path: "/profiles/{username}",
+    handler: getProfileHandler,
+  },
+  {
+    method: "POST",
+    path: "/profiles/{username}/follow",
+    handler: followUserHandler,
+    options: {
+      auth: {
+        strategy: "jwt",
+      },
+    },
+  },
+  {
+    method: "DELETE",
+    path: "/profiles/{username}/follow",
+    handler: unfollowUserHandler,
+    options: {
+      auth: {
+        strategy: "jwt",
+      },
+    },
+  },
+];
 
 const profilesPlugin: Hapi.Plugin<any> = {
   name: "profiles",
   dependencies: ["prisma"],
   register: async function (server: Hapi.Server) {
-    await server.route([
-      {
-        method: "GET",
-        path: "/profiles/{username}",
-        handler: getProfileHandler,
-      },
-      {
-        method: "POST",
-        path: "/profiles/{username}/follow",
-        handler: followUserHandler,
-        options: {
-          auth: {
-            strategy: "jwt",
-          },
-        },
-      },
-      {
-        method: "DELETE",
-        path: "/profiles/{username}/follow",
-        handler: unfollowUserHandler,
-        options: {
-          auth: {
-            strategy: "jwt",
-          },
-        },
-      },
-    ]);
+    await server.route(routes);
   },
 };
 

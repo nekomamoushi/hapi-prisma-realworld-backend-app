@@ -1,17 +1,21 @@
-import Hapi from "@hapi/hapi";
+import Hapi, { ServerRoute } from "@hapi/hapi";
 import Boom from "@hapi/boom";
+
+const routes: ServerRoute[] = [
+  {
+    method: "GET",
+    path: "/tags",
+    handler: getTagsHandler,
+    options: {
+      auth: false,
+    },
+  },
+];
 
 const tagsPlugin: Hapi.Plugin<any> = {
   name: "tags",
   register: async function (server: Hapi.Server) {
-    server.route({
-      method: "GET",
-      path: "/tags",
-      handler: getTagsHandler,
-      options: {
-        auth: false,
-      },
-    });
+    server.route(routes);
   },
 };
 

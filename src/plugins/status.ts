@@ -1,16 +1,19 @@
-import Hapi from "@hapi/hapi";
+import Hapi, { ServerRoute } from "@hapi/hapi";
 
-// plugin to instantiate Prisma Client
+const routes: ServerRoute[] = [
+  {
+    method: "GET",
+    path: "/",
+    handler: (_, h: Hapi.ResponseToolkit) => {
+      return h.response({ up: true }).code(200);
+    },
+  },
+];
+
 const statusPlugin: Hapi.Plugin<undefined> = {
   name: "status",
   register: async function (server: Hapi.Server) {
-    server.route({
-      method: "GET",
-      path: "/",
-      handler: (_, h: Hapi.ResponseToolkit) => {
-        return h.response({ up: true }).code(200);
-      },
-    });
+    server.route(routes);
   },
 };
 
