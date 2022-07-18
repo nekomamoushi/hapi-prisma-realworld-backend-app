@@ -27,7 +27,6 @@ const userPayloadValidator = Joi.object({
       register: (schema) =>
         schema.required().error((errors) => new Error(`email can't be blank`)),
       login: (schema) => schema.required(),
-      update: (schema) => schema.optional(),
     }),
     username: Joi.string().alter({
       register: (schema) =>
@@ -35,7 +34,6 @@ const userPayloadValidator = Joi.object({
           .required()
           .error((errors) => new Error(`username can't be blank`)),
       login: (schema) => schema.optional(),
-      update: (schema) => schema.optional(),
     }),
     password: Joi.string().alter({
       register: (schema) =>
@@ -43,7 +41,6 @@ const userPayloadValidator = Joi.object({
           .required()
           .error((errors) => new Error(`password can't be blank`)),
       login: (schema) => schema.required(),
-      update: (schema) => schema.optional(),
     }),
     bio: Joi.string().optional(),
     image: Joi.string().optional(),
@@ -52,7 +49,6 @@ const userPayloadValidator = Joi.object({
 
 const registerUserValidator = userPayloadValidator.tailor("register");
 const loginUserValidator = userPayloadValidator.tailor("login");
-const updateUserValidator = userPayloadValidator.tailor("update");
 
 const usersPlugin: Hapi.Plugin<any> = {
   name: "users",
