@@ -86,6 +86,28 @@ async function getArticleHandler(
   }
 }
 
+async function getAllArticleHandler(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+
+  const articles = await prisma.article.findMany({
+    include: {
+      author: true,
+    },
+  });
+
+  try {
+    return h
+      .response({ articles: articles, articlesCount: articles.length })
+      .code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    return Boom.badImplementation("failed to get all article");
+  }
+}
+
 async function createArticleHandler(
   request: Hapi.Request,
   h: Hapi.ResponseToolkit
@@ -266,6 +288,11 @@ const routes: ServerRoute[] = [
     method: "GET",
     path: "/articles/{slug}",
     handler: getArticleHandler,
+  },
+  {
+    method: "GET",
+    path: "/articles",
+    handler: getAllArticleHandler,
   },
   {
     method: "POST",
