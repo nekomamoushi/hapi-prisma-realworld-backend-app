@@ -4,6 +4,7 @@ import Joi from "joi";
 import slugify from "slugify";
 import { Prisma } from "@prisma/client";
 import { API_AUTH_STATEGY } from "../helpers/jwt";
+import { HeapCodeStatistics } from "v8";
 
 interface ArticlePayload {
   article: {
@@ -157,6 +158,45 @@ async function updateArticleHandler(
   }
 }
 
+async function deleteArticleHandler(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { slug } = request.params;
+
+  const article = await prisma.article.findUnique({
+    where: {
+      slug,
+    },
+    include: {
+      author: true,
+    },
+  });
+
+  if (!article) {
+    throw Boom.notFound("could not find article");
+  }
+
+  if (userId !== article.author.id) {
+    Boom.forbidden("You can't delete this article");
+  }
+
+  try {
+    const deletedArticle = await prisma.article.delete({
+      where: {
+        slug,
+      },
+    });
+
+    return h.response().code(204);
+  } catch (err: any) {
+    request.log("error", err);
+    return Boom.badImplementation("failed to delete article");
+  }
+}
+
 const routes: ServerRoute[] = [
   {
     method: "POST",
@@ -190,6 +230,16 @@ const routes: ServerRoute[] = [
           err = formatValidationErrors(err);
           throw err;
         },
+      },
+    },
+  },
+  {
+    method: "DELETE",
+    path: "/articles/{slug}",
+    handler: deleteArticleHandler,
+    options: {
+      auth: {
+        strategy: API_AUTH_STATEGY,
       },
     },
   },
