@@ -36,6 +36,56 @@ const articlePayloadValidator = Joi.object({
 const createArticleValidator = articlePayloadValidator.tailor("create");
 const updateArticleValidator = articlePayloadValidator.tailor("update");
 
+async function getArticleHandler(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { slug } = request.params;
+
+  try {
+    const article = await prisma.article.findUnique({
+      where: {
+        slug,
+      },
+      include: {
+        author: true,
+      },
+    });
+
+    if (!article) {
+      throw Boom.notFound("could not find article");
+    }
+
+    const author = {
+      email: article.author.email,
+      username: article.author.username,
+      bio: article.author.bio,
+      image: article.author.image,
+    };
+
+    const response = {
+      slug: article.slug,
+      title: article.title,
+      description: article.description,
+      body: article.body,
+      tagList: article.tagList,
+      createdAt: article.createdAt,
+      updatedAt: article.updatedAt,
+      author,
+    };
+
+    return h.response({ article: response }).code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
+    return Boom.badImplementation("failed to get article");
+  }
+}
+
 async function createArticleHandler(
   request: Hapi.Request,
   h: Hapi.ResponseToolkit
@@ -198,6 +248,11 @@ async function deleteArticleHandler(
 }
 
 const routes: ServerRoute[] = [
+  {
+    method: "GET",
+    path: "/articles/{slug}",
+    handler: getArticleHandler,
+  },
   {
     method: "POST",
     path: "/articles",
