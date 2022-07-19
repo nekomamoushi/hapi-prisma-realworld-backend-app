@@ -91,10 +91,18 @@ async function getAllArticleHandler(
   h: Hapi.ResponseToolkit
 ) {
   const { prisma } = request.server.app;
+  const { limit, offset } = request.query;
 
+  const take = limit ? +limit : 0;
+  const skip = offset ? +offset : 0;
   const articles = await prisma.article.findMany({
     include: {
       author: true,
+    },
+    take,
+    skip,
+    orderBy: {
+      updatedAt: "desc",
     },
   });
 
@@ -103,6 +111,7 @@ async function getAllArticleHandler(
       .response({ articles: articles, articlesCount: articles.length })
       .code(200);
   } catch (err: any) {
+    console.log(err);
     request.log("error", err);
     return Boom.badImplementation("failed to get all article");
   }
