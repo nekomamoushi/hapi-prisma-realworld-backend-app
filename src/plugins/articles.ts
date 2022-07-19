@@ -122,6 +122,13 @@ async function createArticleHandler(
       },
     });
 
+    const author = {
+      email: article.author.email,
+      username: article.author.username,
+      bio: article.author.bio,
+      image: article.author.image,
+    };
+
     const response = {
       slug: article.slug,
       title: article.title,
@@ -130,7 +137,7 @@ async function createArticleHandler(
       tagList: article.tagList,
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
-      author: article.author,
+      author,
     };
     return h.response({ article: response }).code(201);
   } catch (err: any) {
@@ -191,6 +198,13 @@ async function updateArticleHandler(
       },
     });
 
+    const author = {
+      email: article.author.email,
+      username: article.author.username,
+      bio: article.author.bio,
+      image: article.author.image,
+    };
+
     const response = {
       slug: updatedArticle.slug,
       title: updatedArticle.title,
@@ -199,7 +213,7 @@ async function updateArticleHandler(
       tagList: updatedArticle.tagList,
       createdAt: updatedArticle.createdAt,
       updatedAt: updatedArticle.updatedAt,
-      author: updatedArticle.author,
+      author,
     };
     return h.response({ article: response }).code(200);
   } catch (err: any) {
