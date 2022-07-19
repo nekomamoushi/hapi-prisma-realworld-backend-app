@@ -3,6 +3,7 @@ import Boom from "@hapi/boom";
 import Joi from "joi";
 import slugify from "slugify";
 import { Prisma } from "@prisma/client";
+import { API_AUTH_STATEGY } from "../helpers/jwt";
 
 interface ArticlePayload {
   article: {
@@ -162,6 +163,9 @@ const routes: ServerRoute[] = [
     path: "/articles",
     handler: createArticleHandler,
     options: {
+      auth: {
+        strategy: API_AUTH_STATEGY,
+      },
       validate: {
         payload: createArticleValidator,
         failAction: (request, h, err: any) => {
@@ -177,6 +181,9 @@ const routes: ServerRoute[] = [
     path: "/articles/{slug}",
     handler: updateArticleHandler,
     options: {
+      auth: {
+        strategy: API_AUTH_STATEGY,
+      },
       validate: {
         payload: updateArticleValidator,
         failAction: (request, h, err: any) => {
