@@ -91,7 +91,7 @@ async function getAllArticleHandler(
   h: Hapi.ResponseToolkit
 ) {
   const { prisma } = request.server.app;
-  const { limit, offset, author } = request.query;
+  const { limit, offset, author, tag } = request.query;
 
   const take = limit ? +limit : 0;
   const skip = offset ? +offset : 0;
@@ -105,22 +105,36 @@ async function getAllArticleHandler(
     },
   };
 
+  if (author || tag) {
+    query["where"] = {
+      AND: [],
+    };
+  }
+
+  if (author) {
+    query["where"]["AND"].push({
+      author: {
+        username: {
+          equals: author,
+        },
+      },
+    });
+  }
+
+  if (tag) {
+    query["where"]["AND"].push({
+      tagList: {
+        has: tag,
+      },
+    });
+  }
+
   if (take) {
     query["take"] = take;
   }
 
   if (skip) {
     query["skip"] = skip;
-  }
-
-  if (author) {
-    query["where"] = {
-      author: {
-        username: {
-          equals: author,
-        },
-      },
-    };
   }
 
   const articles = await prisma.article.findMany(query);
