@@ -16,12 +16,26 @@ model Tag {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique
-  username  String? @unique
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  username  String?   @unique
   password  String
-  bio       String? @default("")
-  image     String? @default("")
-  following User[]  @relation("Follows")
-  follower  User[]  @relation("Follows")
+  bio       String?   @default("")
+  image     String?   @default("")
+  following User[]    @relation("Follows")
+  follower  User[]    @relation("Follows")
+  Article   Article[]
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  title       String
+  description String
+  body        String
+  tagList     String[]
+  author      User     @relation(fields: [userId], references: [id])
+  userId      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
 }

@@ -1,8 +1,4 @@
-import Hapi, {
-  AuthCredentials,
-  ServerRoute,
-  UserCredentials,
-} from "@hapi/hapi";
+import Hapi, { AuthCredentials, ServerRoute } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import Joi from "joi";
 import bcrypt from "bcrypt";
