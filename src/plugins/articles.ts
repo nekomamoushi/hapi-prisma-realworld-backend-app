@@ -95,16 +95,25 @@ async function getAllArticleHandler(
 
   const take = limit ? +limit : 0;
   const skip = offset ? +offset : 0;
-  const articles = await prisma.article.findMany({
+
+  const query: any = {
     include: {
       author: true,
     },
-    take,
-    skip,
     orderBy: {
       updatedAt: "desc",
     },
-  });
+  };
+
+  if (take) {
+    query["take"] = take;
+  }
+
+  if (skip) {
+    query["skip"] = skip;
+  }
+
+  const articles = await prisma.article.findMany(query);
 
   try {
     return h
