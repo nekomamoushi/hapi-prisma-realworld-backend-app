@@ -4,9 +4,9 @@ import jwtPlugin from "./plugins/jwt";
 import prismaPlugin from "./plugins/prisma";
 
 import profilesPlugin from "./plugins/profiles";
-import statusPlugin from "./plugins/status";
 import usersPlugin from "./plugins/users";
 
+import statusPlugin from "./api/status";
 import articlesPlugin from "./api/articles";
 import tagsPlugin from "./api/tags";
 
