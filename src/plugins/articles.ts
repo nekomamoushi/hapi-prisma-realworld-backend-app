@@ -1,4 +1,4 @@
-import Hapi, { AuthCredentials, ServerRoute } from "@hapi/hapi";
+import Hapi, { Auth, AuthCredentials, ServerRoute } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import Joi from "joi";
 import slugify from "slugify";
@@ -147,6 +147,64 @@ async function getAllArticleHandler(
     console.log(err);
     request.log("error", err);
     return Boom.badImplementation("failed to get all article");
+  }
+}
+
+async function getFeedHandler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { limit, offset } = request.query;
+
+  const take = limit ? +limit : undefined;
+  const skip = offset ? +offset : undefined;
+
+  try {
+    let articles = await prisma.article.findMany({
+      take,
+      skip,
+      where: {
+        author: {
+          follower: {
+            some: {
+              id: userId,
+            },
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      include: {
+        author: {
+          select: {
+            username: true,
+            bio: true,
+            image: true,
+            following: true,
+          },
+        },
+      },
+    });
+
+    const response: any = articles.map((article) => {
+      let following = article.author.following;
+      const isFollowing = !!following?.map((f) => f.id).includes(userId);
+      const author = {
+        ...article.author,
+        following: isFollowing,
+      };
+      return {
+        ...article,
+        author,
+      };
+    });
+
+    return h
+      .response({ articles: response, articlesCount: articles.length })
+      .code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    return Boom.badImplementation("failed to get feed");
   }
 }
 
@@ -335,6 +393,16 @@ const routes: ServerRoute[] = [
     method: "GET",
     path: "/articles",
     handler: getAllArticleHandler,
+  },
+  {
+    method: "GET",
+    path: "/articles/feed",
+    handler: getFeedHandler,
+    options: {
+      auth: {
+        strategy: API_AUTH_STATEGY,
+      },
+    },
   },
   {
     method: "POST",
