@@ -1,46 +1,7 @@
-import Hapi, { AuthCredentials, ServerRoute } from "@hapi/hapi";
+import Hapi, { AuthCredentials } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 
-const routes: ServerRoute[] = [
-  {
-    method: "GET",
-    path: "/profiles/{username}",
-    handler: getProfileHandler,
-  },
-  {
-    method: "POST",
-    path: "/profiles/{username}/follow",
-    handler: followUserHandler,
-    options: {
-      auth: {
-        strategy: "jwt",
-      },
-    },
-  },
-  {
-    method: "DELETE",
-    path: "/profiles/{username}/follow",
-    handler: unfollowUserHandler,
-    options: {
-      auth: {
-        strategy: "jwt",
-      },
-    },
-  },
-];
-
-const profilesPlugin: Hapi.Plugin<any> = {
-  name: "profiles",
-  dependencies: ["prisma"],
-  register: async function (server: Hapi.Server) {
-    await server.route(routes);
-  },
-};
-
-async function getProfileHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function getProfile(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.auth.credentials as AuthCredentials;
   const { username } = request.params;
@@ -78,10 +39,7 @@ async function getProfileHandler(
   }
 }
 
-async function followUserHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function followUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.auth.credentials as AuthCredentials;
   const { username } = request.params;
@@ -128,10 +86,7 @@ async function followUserHandler(
   }
 }
 
-async function unfollowUserHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function unfollowUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.auth.credentials as AuthCredentials;
   const { username } = request.params;
@@ -178,4 +133,4 @@ async function unfollowUserHandler(
   }
 }
 
-export default profilesPlugin;
+export { getProfile, followUser, unfollowUser };
