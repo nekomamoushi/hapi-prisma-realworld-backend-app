@@ -1,11 +1,11 @@
 import Hapi from "@hapi/hapi";
 import hapiAuthJwt2 from "hapi-auth-jwt2";
+
 import jwtPlugin from "./plugins/jwt";
 import prismaPlugin from "./plugins/prisma";
 
-import usersPlugin from "./plugins/users";
-
 import statusPlugin from "./api/status";
+import usersPlugin from "./api/users";
 import profilesPlugin from "./api/profiles";
 import articlesPlugin from "./api/articles";
 import tagsPlugin from "./api/tags";

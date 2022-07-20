@@ -1,8 +1,7 @@
-import Hapi, { AuthCredentials, ServerRoute } from "@hapi/hapi";
+import Hapi, { AuthCredentials } from "@hapi/hapi";
 import Boom from "@hapi/boom";
-import Joi from "joi";
 import bcrypt from "bcrypt";
-import { generateJwtToken } from "../helpers/jwt";
+import { generateJwtToken } from "../../helpers/jwt";
 
 declare module "@hapi/hapi" {
   interface AuthCredentials {
@@ -20,97 +19,7 @@ interface UserPayload {
   };
 }
 
-const userPayloadValidator = Joi.object({
-  user: Joi.object({
-    email: Joi.string().alter({
-      register: (schema) =>
-        schema.required().error((errors) => new Error(`email can't be blank`)),
-      login: (schema) => schema.required(),
-    }),
-    username: Joi.string().alter({
-      register: (schema) =>
-        schema
-          .required()
-          .error((errors) => new Error(`username can't be blank`)),
-      login: (schema) => schema.optional(),
-    }),
-    password: Joi.string().alter({
-      register: (schema) =>
-        schema
-          .required()
-          .error((errors) => new Error(`password can't be blank`)),
-      login: (schema) => schema.required(),
-    }),
-    bio: Joi.string().optional(),
-    image: Joi.string().optional(),
-  }),
-});
-
-const registerUserValidator = userPayloadValidator.tailor("register");
-const loginUserValidator = userPayloadValidator.tailor("login");
-
-const routes: ServerRoute[] = [
-  {
-    method: "POST",
-    path: "/users",
-    handler: registerUserHandler,
-    options: {
-      auth: false,
-      validate: {
-        payload: registerUserValidator,
-        failAction: (request, h, err: any) => {
-          // show validation errors to user
-          // https://github.com/hapijs/hapi/issues/3706
-          err = formatValidationErrors(err);
-          throw err;
-        },
-      },
-    },
-  },
-  {
-    method: "POST",
-    path: "/users/login",
-    handler: loginUserHandler,
-    options: {
-      auth: false,
-      validate: {
-        payload: loginUserValidator,
-        failAction: (request, h, err: any) => {
-          err = formatValidationErrors(err);
-          throw err;
-        },
-      },
-    },
-  },
-  {
-    method: "GET",
-    path: "/user",
-    handler: getCurrentUser,
-    options: {
-      auth: {
-        strategy: "jwt",
-      },
-    },
-  },
-  {
-    method: "PUT",
-    path: "/user",
-    handler: updateCurrentUser,
-  },
-];
-
-const usersPlugin: Hapi.Plugin<any> = {
-  name: "users",
-  dependencies: ["prisma", "hapi-auth-jwt2"],
-  register: async function (server: Hapi.Server) {
-    server.route(routes);
-  },
-};
-
-async function registerUserHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function registerUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const {
     user: { email, username, password },
@@ -160,10 +69,7 @@ async function registerUserHandler(
   }
 }
 
-async function loginUserHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function loginUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const {
     user: { email, password },
@@ -271,15 +177,4 @@ async function updateCurrentUser(
   }
 }
 
-function formatValidationErrors(err: any) {
-  const [key, ...message] = err.message.split(" ");
-  err.output.statusCode = 422;
-  err.output.payload = {
-    errors: {
-      [key]: [message.join(" ")],
-    },
-  };
-  return err;
-}
-
-export default usersPlugin;
+export { registerUser, loginUser, getCurrentUser, updateCurrentUser };
