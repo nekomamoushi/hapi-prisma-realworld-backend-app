@@ -2,9 +2,10 @@ import Hapi, { Auth, AuthCredentials, ServerRoute } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 import Joi from "joi";
 import slugify from "slugify";
-import { Prisma } from "@prisma/client";
+import { Article, Prisma } from "@prisma/client";
 import { API_AUTH_STATEGY } from "../helpers/jwt";
 import { HeapCodeStatistics } from "v8";
+import { userInfo } from "os";
 
 interface ArticlePayload {
   article: {
@@ -50,7 +51,15 @@ async function getArticleHandler(
         slug,
       },
       include: {
-        author: true,
+        author: {
+          select: {
+            username: true,
+            bio: true,
+            image: true,
+            following: true,
+          },
+        },
+        favoritedBy: true,
       },
     });
 
@@ -58,23 +67,7 @@ async function getArticleHandler(
       throw Boom.notFound("could not find article");
     }
 
-    const author = {
-      email: article.author.email,
-      username: article.author.username,
-      bio: article.author.bio,
-      image: article.author.image,
-    };
-
-    const response = {
-      slug: article.slug,
-      title: article.title,
-      description: article.description,
-      body: article.body,
-      tagList: article.tagList,
-      createdAt: article.createdAt,
-      updatedAt: article.updatedAt,
-      author,
-    };
+    const response = formatArticle(article, userId);
 
     return h.response({ article: response }).code(200);
   } catch (err: any) {
@@ -91,6 +84,7 @@ async function getAllArticleHandler(
   h: Hapi.ResponseToolkit
 ) {
   const { prisma } = request.server.app;
+  const { userId } = request.params;
   const { limit, offset, author, tag } = request.query;
 
   const take = limit ? +limit : 0;
@@ -98,7 +92,15 @@ async function getAllArticleHandler(
 
   const query: any = {
     include: {
-      author: true,
+      author: {
+        select: {
+          username: true,
+          bio: true,
+          image: true,
+          following: true,
+        },
+      },
+      favoritedBy: true,
     },
     orderBy: {
       updatedAt: "desc",
@@ -139,9 +141,13 @@ async function getAllArticleHandler(
 
   const articles = await prisma.article.findMany(query);
 
+  const response = articles.map((article) => {
+    return formatArticle(article, userId);
+  });
+
   try {
     return h
-      .response({ articles: articles, articlesCount: articles.length })
+      .response({ articles: response, articlesCount: response.length })
       .code(200);
   } catch (err: any) {
     console.log(err);
@@ -186,17 +192,8 @@ async function getFeedHandler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       },
     });
 
-    const response: any = articles.map((article) => {
-      let following = article.author.following;
-      const isFollowing = !!following?.map((f) => f.id).includes(userId);
-      const author = {
-        ...article.author,
-        following: isFollowing,
-      };
-      return {
-        ...article,
-        author,
-      };
+    const response = articles.map((article) => {
+      return formatArticle(article, userId);
     });
 
     return h
@@ -241,26 +238,11 @@ async function createArticleHandler(
             image: true,
           },
         },
+        favoritedBy: true,
       },
     });
 
-    const author = {
-      email: article.author.email,
-      username: article.author.username,
-      bio: article.author.bio,
-      image: article.author.image,
-    };
-
-    const response = {
-      slug: article.slug,
-      title: article.title,
-      description: article.description,
-      body: article.body,
-      tagList: article.tagList,
-      createdAt: article.createdAt,
-      updatedAt: article.updatedAt,
-      author,
-    };
+    const response = formatArticle(article, userId);
     return h.response({ article: response }).code(201);
   } catch (err: any) {
     request.log("error", err);
@@ -320,23 +302,7 @@ async function updateArticleHandler(
       },
     });
 
-    const author = {
-      email: article.author.email,
-      username: article.author.username,
-      bio: article.author.bio,
-      image: article.author.image,
-    };
-
-    const response = {
-      slug: updatedArticle.slug,
-      title: updatedArticle.title,
-      description: updatedArticle.description,
-      body: updatedArticle.body,
-      tagList: updatedArticle.tagList,
-      createdAt: updatedArticle.createdAt,
-      updatedAt: updatedArticle.updatedAt,
-      author,
-    };
+    const response = formatArticle(updatedArticle, userId);
     return h.response({ article: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
@@ -380,6 +346,65 @@ async function deleteArticleHandler(
   } catch (err: any) {
     request.log("error", err);
     return Boom.badImplementation("failed to delete article");
+  }
+}
+
+async function favoriteArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { slug } = request.params;
+
+  try {
+    const article = await prisma.article.update({
+      where: {
+        slug,
+      },
+      include: {
+        author: {
+          select: {
+            username: true,
+            bio: true,
+            image: true,
+            following: true,
+          },
+        },
+        favoritedBy: true,
+      },
+      data: {
+        favoritedBy: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
+
+    if (!article) {
+      throw Boom.notFound("could not find article");
+    }
+
+    let following = article.author.following;
+    let favoritedBy = article.favoritedBy;
+
+    const isFollowing = !!following?.map((f) => f.id).includes(userId);
+    const isFavoritedByMe = !!favoritedBy?.map((f) => f.id).includes(userId);
+    const author = {
+      ...article.author,
+      following: isFollowing,
+    };
+    const response = {
+      ...article,
+      favorited: isFavoritedByMe,
+      favoritesCount: favoritedBy.length,
+      author,
+    };
+    return h.response({ article: response }).code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
+    return Boom.badImplementation("failed to favorite article");
   }
 }
 
@@ -449,6 +474,16 @@ const routes: ServerRoute[] = [
       },
     },
   },
+  {
+    method: "POST",
+    path: "/articles/{slug}/favorite",
+    handler: favoriteArticle,
+    options: {
+      auth: {
+        strategy: API_AUTH_STATEGY,
+      },
+    },
+  },
 ];
 
 const articlesPlugin: Hapi.Plugin<any> = {
@@ -468,6 +503,51 @@ function formatValidationErrors(err: any) {
     },
   };
   return err;
+}
+
+interface ArticleResponse {
+  slug: string;
+  title: string;
+  description: string;
+  body: string;
+  tagList: string[];
+  createdAt: string;
+  updatedAt: string;
+  favorited: boolean;
+  favoritesCount: number;
+  author: {
+    username: string;
+    bio: string;
+    image: string;
+    following: boolean;
+  };
+}
+
+function formatArticle(article: any, userId: number) {
+  let following = article.author.following;
+  let favoritedBy = article.favoritedBy;
+
+  const isFollowing = !!following?.map((f: any) => f.id).includes(userId);
+  const isFavoritedByMe = !!favoritedBy?.map((f: any) => f.id).includes(userId);
+  const author = {
+    ...article.author,
+    following: isFollowing,
+  };
+
+  const formattedArticle: ArticleResponse = {
+    slug: article.slug,
+    title: article.title,
+    description: article.description,
+    body: article.body,
+    tagList: article.tagList,
+    createdAt: article.createdAt,
+    updatedAt: article.updatedAt,
+    favorited: isFavoritedByMe,
+    favoritesCount: favoritedBy.length,
+    author,
+  };
+
+  return formattedArticle;
 }
 
 export default articlesPlugin;

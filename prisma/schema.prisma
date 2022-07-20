@@ -24,7 +24,8 @@ model User {
   image     String?   @default("")
   following User[]    @relation("Follows")
   follower  User[]    @relation("Follows")
-  Article   Article[]
+  articles  Article[] @relation("UserArticles")
+  favorites Article[] @relation("UserFavorites")
 }
 
 model Article {
@@ -34,8 +35,9 @@ model Article {
   description String
   body        String
   tagList     String[]
-  author      User     @relation(fields: [userId], references: [id])
+  author      User     @relation("UserArticles", fields: [userId], references: [id])
   userId      Int
+  favoritedBy User[]   @relation("UserFavorites")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
