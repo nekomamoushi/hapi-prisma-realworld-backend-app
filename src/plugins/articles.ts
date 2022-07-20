@@ -383,21 +383,7 @@ async function favoriteArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       throw Boom.notFound("could not find article");
     }
 
-    let following = article.author.following;
-    let favoritedBy = article.favoritedBy;
-
-    const isFollowing = !!following?.map((f) => f.id).includes(userId);
-    const isFavoritedByMe = !!favoritedBy?.map((f) => f.id).includes(userId);
-    const author = {
-      ...article.author,
-      following: isFollowing,
-    };
-    const response = {
-      ...article,
-      favorited: isFavoritedByMe,
-      favoritesCount: favoritedBy.length,
-      author,
-    };
+    const response = formatArticle(article, userId);
     return h.response({ article: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
@@ -405,6 +391,54 @@ async function favoriteArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       return err;
     }
     return Boom.badImplementation("failed to favorite article");
+  }
+}
+
+async function unfavoriteArticle(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { slug } = request.params;
+
+  try {
+    const article = await prisma.article.update({
+      where: {
+        slug,
+      },
+      include: {
+        author: {
+          select: {
+            username: true,
+            bio: true,
+            image: true,
+            following: true,
+          },
+        },
+        favoritedBy: true,
+      },
+      data: {
+        favoritedBy: {
+          disconnect: {
+            id: userId,
+          },
+        },
+      },
+    });
+
+    if (!article) {
+      throw Boom.notFound("could not find article");
+    }
+
+    const response = formatArticle(article, userId);
+    return h.response({ article: response }).code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
+    return Boom.badImplementation("failed to unfavorite article");
   }
 }
 
@@ -478,6 +512,16 @@ const routes: ServerRoute[] = [
     method: "POST",
     path: "/articles/{slug}/favorite",
     handler: favoriteArticle,
+    options: {
+      auth: {
+        strategy: API_AUTH_STATEGY,
+      },
+    },
+  },
+  {
+    method: "DELETE",
+    path: "/articles/{slug}/favorite",
+    handler: unfavoriteArticle,
     options: {
       auth: {
         strategy: API_AUTH_STATEGY,
