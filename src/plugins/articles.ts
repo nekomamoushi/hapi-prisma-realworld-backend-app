@@ -37,6 +37,18 @@ const articlePayloadValidator = Joi.object({
 const createArticleValidator = articlePayloadValidator.tailor("create");
 const updateArticleValidator = articlePayloadValidator.tailor("update");
 
+const articleInclude = {
+  author: {
+    select: {
+      username: true,
+      bio: true,
+      image: true,
+      following: true,
+    },
+  },
+  favoritedBy: true,
+};
+
 async function getArticleHandler(
   request: Hapi.Request,
   h: Hapi.ResponseToolkit
@@ -47,20 +59,8 @@ async function getArticleHandler(
 
   try {
     const article = await prisma.article.findUnique({
-      where: {
-        slug,
-      },
-      include: {
-        author: {
-          select: {
-            username: true,
-            bio: true,
-            image: true,
-            following: true,
-          },
-        },
-        favoritedBy: true,
-      },
+      where: { slug },
+      include: articleInclude,
     });
 
     if (!article) {
@@ -91,20 +91,8 @@ async function getAllArticleHandler(
   const skip = offset ? +offset : 0;
 
   const query: any = {
-    include: {
-      author: {
-        select: {
-          username: true,
-          bio: true,
-          image: true,
-          following: true,
-        },
-      },
-      favoritedBy: true,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
+    include: articleInclude,
+    orderBy: { updatedAt: "desc" },
   };
 
   if (author || tag) {
@@ -166,8 +154,6 @@ async function getFeedHandler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
 
   try {
     let articles = await prisma.article.findMany({
-      take,
-      skip,
       where: {
         author: {
           follower: {
@@ -177,19 +163,12 @@ async function getFeedHandler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
           },
         },
       },
+      take,
+      skip,
       orderBy: {
         updatedAt: "desc",
       },
-      include: {
-        author: {
-          select: {
-            username: true,
-            bio: true,
-            image: true,
-            following: true,
-          },
-        },
-      },
+      include: articleInclude,
     });
 
     const response = articles.map((article) => {
@@ -215,31 +194,22 @@ async function createArticleHandler(
     article: { title, description, body, tagList },
   } = request.payload as ArticlePayload;
 
+  const data = {
+    title,
+    slug: slugify(title),
+    description,
+    body,
+    tagList,
+    author: {
+      connect: {
+        id: userId,
+      },
+    },
+  };
   try {
     const article = await prisma.article.create({
-      data: {
-        title,
-        slug: slugify(title),
-        description,
-        body,
-        tagList,
-        author: {
-          connect: {
-            id: userId,
-          },
-        },
-      },
-      include: {
-        author: {
-          select: {
-            email: true,
-            username: true,
-            bio: true,
-            image: true,
-          },
-        },
-        favoritedBy: true,
-      },
+      data,
+      include: articleInclude,
     });
 
     const response = formatArticle(article, userId);
@@ -264,20 +234,12 @@ async function updateArticleHandler(
     let updatedSlug;
 
     const article = await prisma.article.findUnique({
-      where: {
-        slug,
-      },
-      include: {
-        author: true,
-      },
+      where: { slug },
+      include: articleInclude,
     });
 
     if (!article) {
       throw Boom.notFound("could not find article");
-    }
-
-    if (userId !== article.author.id) {
-      Boom.forbidden("You can't update this article");
     }
 
     if (title && title !== article.title) {
@@ -293,13 +255,9 @@ async function updateArticleHandler(
     };
 
     const updatedArticle = await prisma.article.update({
-      where: {
-        slug,
-      },
+      where: { slug },
       data,
-      include: {
-        author: true,
-      },
+      include: articleInclude,
     });
 
     const response = formatArticle(updatedArticle, userId);
@@ -319,27 +277,16 @@ async function deleteArticleHandler(
   const { slug } = request.params;
 
   const article = await prisma.article.findUnique({
-    where: {
-      slug,
-    },
-    include: {
-      author: true,
-    },
+    where: { slug },
   });
 
   if (!article) {
     throw Boom.notFound("could not find article");
   }
 
-  if (userId !== article.author.id) {
-    Boom.forbidden("You can't delete this article");
-  }
-
   try {
-    const deletedArticle = await prisma.article.delete({
-      where: {
-        slug,
-      },
+    await prisma.article.delete({
+      where: { slug },
     });
 
     return h.response().code(204);
@@ -354,29 +301,19 @@ async function favoriteArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { userId } = request.auth.credentials as AuthCredentials;
   const { slug } = request.params;
 
+  const data = {
+    favoritedBy: {
+      connect: {
+        id: userId,
+      },
+    },
+  };
+
   try {
     const article = await prisma.article.update({
-      where: {
-        slug,
-      },
-      include: {
-        author: {
-          select: {
-            username: true,
-            bio: true,
-            image: true,
-            following: true,
-          },
-        },
-        favoritedBy: true,
-      },
-      data: {
-        favoritedBy: {
-          connect: {
-            id: userId,
-          },
-        },
-      },
+      where: { slug },
+      include: articleInclude,
+      data,
     });
 
     if (!article) {
@@ -402,29 +339,19 @@ async function unfavoriteArticle(
   const { userId } = request.auth.credentials as AuthCredentials;
   const { slug } = request.params;
 
+  const data = {
+    favoritedBy: {
+      disconnect: {
+        id: userId,
+      },
+    },
+  };
+
   try {
     const article = await prisma.article.update({
-      where: {
-        slug,
-      },
-      include: {
-        author: {
-          select: {
-            username: true,
-            bio: true,
-            image: true,
-            following: true,
-          },
-        },
-        favoritedBy: true,
-      },
-      data: {
-        favoritedBy: {
-          disconnect: {
-            id: userId,
-          },
-        },
-      },
+      where: { slug },
+      include: articleInclude,
+      data,
     });
 
     if (!article) {
