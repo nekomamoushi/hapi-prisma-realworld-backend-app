@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import prismaPlugin from "../src/plugins/prisma";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
@@ -25,20 +25,27 @@ async function main() {
       {
         username: "germione",
         email: "germione@prisma.com",
-        password: "passeword",
+        password: bcrypt.hashSync("passeword", 10),
       },
       {
         username: "jayee",
         email: "jayee@prisma.com",
-        password: "passeword",
+        password: bcrypt.hashSync("passeword", 10),
       },
       {
-        username: "nabo",
-        email: "nabooo@prisma.com",
-        password: "passeword",
+        username: "naboo",
+        email: "naboo@prisma.com",
+        password: bcrypt.hashSync("passeword", 10),
       },
     ],
   });
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: "germione@prisma.com",
+    },
+  });
+  console.log(user);
 
   const userCount = await prisma.user.aggregate({
     _count: true,
