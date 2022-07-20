@@ -1,11 +1,7 @@
-import Hapi, { Auth, AuthCredentials, ServerRoute } from "@hapi/hapi";
+import Hapi, { AuthCredentials } from "@hapi/hapi";
 import Boom from "@hapi/boom";
-import Joi from "joi";
+import { Prisma } from "@prisma/client";
 import slugify from "slugify";
-import { Article, Prisma } from "@prisma/client";
-import { API_AUTH_STATEGY } from "../helpers/jwt";
-import { HeapCodeStatistics } from "v8";
-import { userInfo } from "os";
 
 interface ArticlePayload {
   article: {
@@ -16,26 +12,23 @@ interface ArticlePayload {
   };
 }
 
-const articlePayloadValidator = Joi.object({
-  article: Joi.object({
-    title: Joi.string().alter({
-      create: (schema) => schema.required(),
-      update: (schema) => schema.optional(),
-    }),
-    description: Joi.string().alter({
-      create: (schema) => schema.required(),
-      update: (schema) => schema.optional(),
-    }),
-    body: Joi.string().alter({
-      create: (schema) => schema.required(),
-      update: (schema) => schema.optional(),
-    }),
-    tagList: Joi.array().optional(),
-  }),
-});
-
-const createArticleValidator = articlePayloadValidator.tailor("create");
-const updateArticleValidator = articlePayloadValidator.tailor("update");
+interface ArticleResponse {
+  slug: string;
+  title: string;
+  description: string;
+  body: string;
+  tagList: string[];
+  createdAt: string;
+  updatedAt: string;
+  favorited: boolean;
+  favoritesCount: number;
+  author: {
+    username: string;
+    bio: string;
+    image: string;
+    following: boolean;
+  };
+}
 
 const articleInclude = {
   author: {
@@ -49,7 +42,7 @@ const articleInclude = {
   favoritedBy: true,
 };
 
-async function getArticleHandler(
+async function getSingleArticle(
   request: Hapi.Request,
   h: Hapi.ResponseToolkit
 ) {
@@ -79,10 +72,7 @@ async function getArticleHandler(
   }
 }
 
-async function getAllArticleHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function getAllArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.params;
   const { limit, offset, author, tag } = request.query;
@@ -144,7 +134,7 @@ async function getAllArticleHandler(
   }
 }
 
-async function getFeedHandler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
+async function getFeed(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.auth.credentials as AuthCredentials;
   const { limit, offset } = request.query;
@@ -184,10 +174,7 @@ async function getFeedHandler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   }
 }
 
-async function createArticleHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function createArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.auth.credentials as AuthCredentials;
   const {
@@ -220,10 +207,7 @@ async function createArticleHandler(
   }
 }
 
-async function updateArticleHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function updateArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   try {
     const { prisma } = request.server.app;
     const { userId } = request.auth.credentials as AuthCredentials;
@@ -268,10 +252,7 @@ async function updateArticleHandler(
   }
 }
 
-async function deleteArticleHandler(
-  request: Hapi.Request,
-  h: Hapi.ResponseToolkit
-) {
+async function deleteArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.auth.credentials as AuthCredentials;
   const { slug } = request.params;
@@ -369,131 +350,6 @@ async function unfavoriteArticle(
   }
 }
 
-const routes: ServerRoute[] = [
-  {
-    method: "GET",
-    path: "/articles/{slug}",
-    handler: getArticleHandler,
-  },
-  {
-    method: "GET",
-    path: "/articles",
-    handler: getAllArticleHandler,
-  },
-  {
-    method: "GET",
-    path: "/articles/feed",
-    handler: getFeedHandler,
-    options: {
-      auth: {
-        strategy: API_AUTH_STATEGY,
-      },
-    },
-  },
-  {
-    method: "POST",
-    path: "/articles",
-    handler: createArticleHandler,
-    options: {
-      auth: {
-        strategy: API_AUTH_STATEGY,
-      },
-      validate: {
-        payload: createArticleValidator,
-        failAction: (request, h, err: any) => {
-          console.log(err);
-          err = formatValidationErrors(err);
-          throw err;
-        },
-      },
-    },
-  },
-  {
-    method: "PUT",
-    path: "/articles/{slug}",
-    handler: updateArticleHandler,
-    options: {
-      auth: {
-        strategy: API_AUTH_STATEGY,
-      },
-      validate: {
-        payload: updateArticleValidator,
-        failAction: (request, h, err: any) => {
-          err = formatValidationErrors(err);
-          throw err;
-        },
-      },
-    },
-  },
-  {
-    method: "DELETE",
-    path: "/articles/{slug}",
-    handler: deleteArticleHandler,
-    options: {
-      auth: {
-        strategy: API_AUTH_STATEGY,
-      },
-    },
-  },
-  {
-    method: "POST",
-    path: "/articles/{slug}/favorite",
-    handler: favoriteArticle,
-    options: {
-      auth: {
-        strategy: API_AUTH_STATEGY,
-      },
-    },
-  },
-  {
-    method: "DELETE",
-    path: "/articles/{slug}/favorite",
-    handler: unfavoriteArticle,
-    options: {
-      auth: {
-        strategy: API_AUTH_STATEGY,
-      },
-    },
-  },
-];
-
-const articlesPlugin: Hapi.Plugin<any> = {
-  name: "articles",
-  dependencies: ["prisma"],
-  register: async function (server: Hapi.Server) {
-    server.route(routes);
-  },
-};
-
-function formatValidationErrors(err: any) {
-  const [key, ...message] = err.message.split(" ");
-  err.output.statusCode = 422;
-  err.output.payload = {
-    errors: {
-      [key]: [message.join(" ")],
-    },
-  };
-  return err;
-}
-
-interface ArticleResponse {
-  slug: string;
-  title: string;
-  description: string;
-  body: string;
-  tagList: string[];
-  createdAt: string;
-  updatedAt: string;
-  favorited: boolean;
-  favoritesCount: number;
-  author: {
-    username: string;
-    bio: string;
-    image: string;
-    following: boolean;
-  };
-}
-
 function formatArticle(article: any, userId: number) {
   let following = article.author.following;
   let favoritedBy = article.favoritedBy;
@@ -521,4 +377,13 @@ function formatArticle(article: any, userId: number) {
   return formattedArticle;
 }
 
-export default articlesPlugin;
+export {
+  getAllArticle,
+  getFeed,
+  getSingleArticle,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+  favoriteArticle,
+  unfavoriteArticle,
+};

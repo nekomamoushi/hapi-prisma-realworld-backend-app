@@ -1,12 +1,12 @@
 import Hapi from "@hapi/hapi";
 import hapiAuthJwt2 from "hapi-auth-jwt2";
+import articlesPlugin from "./api/articles";
 import jwtPlugin from "./plugins/jwt";
 import prismaPlugin from "./plugins/prisma";
 import profilesPlugin from "./plugins/profiles";
 import statusPlugin from "./plugins/status";
 import tagsPlugin from "./plugins/tags";
 import usersPlugin from "./plugins/users";
-import articlesPlugin from "./plugins/articles";
 
 const server: Hapi.Server = Hapi.server({
   port: process.env.PORT || 3000,
