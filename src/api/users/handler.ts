@@ -111,7 +111,7 @@ async function loginUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
 async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.auth.credentials as AuthCredentials;
-
+  const { token } = request.auth.artifacts;
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -128,6 +128,7 @@ async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       username: user.username,
       bio: user.bio,
       image: user.image,
+      token,
     };
 
     return h.response({ user: response }).code(200);
@@ -143,6 +144,7 @@ async function updateCurrentUser(
 ) {
   const { prisma } = request.server.app;
   const { userId } = request.auth.credentials as AuthCredentials;
+  const { token } = request.auth.artifacts;
   const { user: userPayload } = request.payload as Partial<UserPayload>;
 
   try {
@@ -181,6 +183,7 @@ async function updateCurrentUser(
       username: user.username,
       bio: user.bio,
       image: user.image,
+      token,
     };
     return h.response({ user: response }).code(200);
   } catch (err: any) {
