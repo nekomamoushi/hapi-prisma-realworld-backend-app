@@ -68,7 +68,6 @@ const routes: ServerRoute[] = [
       validate: {
         payload: createArticleValidator,
         failAction: (request, h, err: any) => {
-          console.log(err);
           err = formatValidationErrors(err);
           throw err;
         },

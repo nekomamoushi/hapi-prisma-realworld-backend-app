@@ -146,7 +146,6 @@ async function getAllArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       .response({ articles: response, articlesCount: response.length })
       .code(200);
   } catch (err: any) {
-    console.log(err);
     request.log("error", err);
     return Boom.badImplementation("failed to get all article");
   }
@@ -460,7 +459,6 @@ async function deleteCommentToArticle(
   const { userId } = request.auth.credentials as AuthCredentials;
   const { slug, id } = request.params;
 
-  console.log(id);
   try {
     const comment = await prisma.comment.delete({
       where: {
