@@ -18,7 +18,17 @@ const articlePayloadValidator = Joi.object({
   }),
 });
 
+const commentPayloadValidator = Joi.object({
+  comment: Joi.object({
+    body: Joi.string().required(),
+  }),
+});
+
 const createArticleValidator = articlePayloadValidator.tailor("create");
 const updateArticleValidator = articlePayloadValidator.tailor("update");
 
-export { createArticleValidator, updateArticleValidator };
+export {
+  createArticleValidator,
+  updateArticleValidator,
+  commentPayloadValidator,
+};

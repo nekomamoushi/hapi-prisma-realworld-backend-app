@@ -1,6 +1,7 @@
 import { ServerRoute } from "@hapi/hapi";
 import { API_AUTH_STATEGY } from "../../plugins/jwt";
 import {
+  addCommentToArticle,
   createArticle,
   deleteArticle,
   favoriteArticle,
@@ -10,7 +11,11 @@ import {
   unfavoriteArticle,
   updateArticle,
 } from "./handler";
-import { createArticleValidator, updateArticleValidator } from "./validator";
+import {
+  commentPayloadValidator,
+  createArticleValidator,
+  updateArticleValidator,
+} from "./validator";
 
 function formatValidationErrors(err: any) {
   const [key, ...message] = err.message.split(" ");
@@ -106,6 +111,23 @@ const routes: ServerRoute[] = [
     options: {
       auth: {
         strategy: API_AUTH_STATEGY,
+      },
+    },
+  },
+  {
+    method: "POST",
+    path: "/articles/{slug}/comments",
+    handler: addCommentToArticle,
+    options: {
+      auth: {
+        strategy: API_AUTH_STATEGY,
+      },
+      validate: {
+        payload: commentPayloadValidator,
+        failAction: (request, h, err: any) => {
+          err = formatValidationErrors(err);
+          throw err;
+        },
       },
     },
   },

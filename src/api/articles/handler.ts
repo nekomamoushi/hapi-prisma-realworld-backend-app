@@ -12,6 +12,11 @@ interface ArticlePayload {
   };
 }
 
+interface CommentPayload {
+  comment: {
+    body: string;
+  };
+}
 interface ArticleResponse {
   slug: string;
   title: string;
@@ -22,6 +27,19 @@ interface ArticleResponse {
   updatedAt: string;
   favorited: boolean;
   favoritesCount: number;
+  author: {
+    username: string;
+    bio: string;
+    image: string;
+    following: boolean;
+  };
+}
+
+interface CommentResponse {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  body: string;
   author: {
     username: string;
     bio: string;
@@ -350,6 +368,73 @@ async function unfavoriteArticle(
   }
 }
 
+async function addCommentToArticle(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { slug } = request.params;
+  const {
+    comment: { body },
+  } = request.payload as CommentPayload;
+
+  try {
+    const comment = await prisma.comment.create({
+      data: {
+        body,
+        author: {
+          connect: {
+            id: userId,
+          },
+        },
+        article: {
+          connect: {
+            slug,
+          },
+        },
+      },
+      include: {
+        author: {
+          select: {
+            username: true,
+            bio: true,
+            image: true,
+            following: true,
+          },
+        },
+      },
+    });
+
+    const response = formatComment(comment, userId);
+    console.log(response);
+    return h.response({ comment: response }).code(201);
+  } catch (err: any) {
+    request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
+    return Boom.badImplementation("failed to add comment to article");
+  }
+}
+
+function formatComment(comment: any, userId: number) {
+  let following = comment.author.following;
+  const isFollowing = !!following?.map((f: any) => f.id).includes(userId);
+  const author = {
+    ...comment.author,
+    following: isFollowing,
+  };
+  const formattedComment: CommentResponse = {
+    id: comment.id,
+    body: comment.body,
+    createdAt: comment.createdAt.toISOString(),
+    updatedAt: comment.updatedAt.toISOString(),
+    author,
+  };
+  return formattedComment;
+}
+
 function formatArticle(article: any, userId: number) {
   let following = article.author.following;
   let favoritedBy = article.favoritedBy;
@@ -386,4 +471,5 @@ export {
   deleteArticle,
   favoriteArticle,
   unfavoriteArticle,
+  addCommentToArticle,
 };
