@@ -16,6 +16,7 @@ interface UserPayload {
     password: string;
     bio: string;
     image: string;
+    token?: string;
   };
 }
 
@@ -155,13 +156,18 @@ async function updateCurrentUser(
       throw Boom.notFound("could not found user");
     }
 
-    let updatedUser = { ...user };
-    Object.assign(updatedUser, userPayload);
+    let data = {
+      email: userPayload?.email,
+      username: userPayload?.username,
+      bio: userPayload?.bio,
+      image: userPayload?.image,
+    };
+
     user = await prisma.user.update({
       where: {
         id: userId,
       },
-      data: updatedUser,
+      data,
     });
 
     const response = {
@@ -173,6 +179,9 @@ async function updateCurrentUser(
     return h.response({ user: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
     return Boom.badImplementation("failed to update current user");
   }
 }
