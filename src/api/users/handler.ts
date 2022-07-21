@@ -156,12 +156,18 @@ async function updateCurrentUser(
       throw Boom.notFound("could not found user");
     }
 
-    let data = {
+    let data: any = {
       email: userPayload?.email,
       username: userPayload?.username,
       bio: userPayload?.bio,
       image: userPayload?.image,
     };
+
+    let hashedPassword;
+    if (userPayload?.password) {
+      hashedPassword = bcrypt.hashSync(userPayload?.password, 10);
+      data["password"] = hashedPassword;
+    }
 
     user = await prisma.user.update({
       where: {
