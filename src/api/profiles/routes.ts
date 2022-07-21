@@ -6,6 +6,9 @@ const routes: ServerRoute[] = [
     method: "GET",
     path: "/profiles/{username}",
     handler: getProfile,
+    options: {
+      auth: false,
+    },
   },
   {
     method: "POST",

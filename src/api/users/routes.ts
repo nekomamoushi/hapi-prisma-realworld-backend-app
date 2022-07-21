@@ -54,6 +54,11 @@ const routes: ServerRoute[] = [
     method: "PUT",
     path: "/user",
     handler: updateCurrentUser,
+    options: {
+      auth: {
+        strategy: "jwt",
+      },
+    },
   },
 ];
 

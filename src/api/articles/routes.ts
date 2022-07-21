@@ -35,11 +35,17 @@ const routes: ServerRoute[] = [
     method: "GET",
     path: "/articles/{slug}",
     handler: getSingleArticle,
+    options: {
+      auth: false,
+    },
   },
   {
     method: "GET",
     path: "/articles",
     handler: getAllArticle,
+    options: {
+      auth: false,
+    },
   },
   {
     method: "GET",
@@ -137,6 +143,9 @@ const routes: ServerRoute[] = [
     method: "GET",
     path: "/articles/{slug}/comments",
     handler: getCommentsToArticle,
+    options: {
+      auth: false,
+    },
   },
   {
     method: "DELETE",
