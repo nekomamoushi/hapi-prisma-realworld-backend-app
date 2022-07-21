@@ -6,6 +6,7 @@ import {
   deleteArticle,
   favoriteArticle,
   getAllArticle,
+  getCommentsToArticle,
   getFeed,
   getSingleArticle,
   unfavoriteArticle,
@@ -130,6 +131,11 @@ const routes: ServerRoute[] = [
         },
       },
     },
+  },
+  {
+    method: "GET",
+    path: "/articles/{slug}/comments",
+    handler: getCommentsToArticle,
   },
 ];
 

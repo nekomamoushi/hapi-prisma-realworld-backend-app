@@ -407,8 +407,42 @@ async function addCommentToArticle(
     });
 
     const response = formatComment(comment, userId);
-    console.log(response);
     return h.response({ comment: response }).code(201);
+  } catch (err: any) {
+    request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
+    return Boom.badImplementation("failed to add comment to article");
+  }
+}
+
+async function getCommentsToArticle(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { slug } = request.params;
+
+  try {
+    const comments = await prisma.comment.findMany({
+      where: { article: { slug } },
+      include: {
+        author: {
+          select: {
+            username: true,
+            bio: true,
+            image: true,
+            following: true,
+          },
+        },
+      },
+    });
+    const response = comments.map((comment) => {
+      return formatComment(comment, userId);
+    });
+    return h.response({ comment: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
     if (err.isBoom) {
@@ -472,4 +506,5 @@ export {
   favoriteArticle,
   unfavoriteArticle,
   addCommentToArticle,
+  getCommentsToArticle,
 };
