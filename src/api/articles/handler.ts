@@ -452,7 +452,7 @@ async function getCommentsToArticle(
     const response = comments.map((comment) => {
       return formatComment(comment, userId);
     });
-    return h.response({ comment: response }).code(200);
+    return h.response({ comments: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
     if (err.isBoom) {
