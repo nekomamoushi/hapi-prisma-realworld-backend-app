@@ -3,8 +3,13 @@ import Boom from "@hapi/boom";
 
 async function getProfile(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
-  const { userId } = request.auth.credentials as AuthCredentials;
   const { username } = request.params;
+  const credentials = request.auth.credentials as AuthCredentials;
+  let userId;
+
+  if (credentials) {
+    userId = credentials.userId;
+  }
 
   try {
     const profile = await prisma.user.findUnique({
@@ -17,6 +22,18 @@ async function getProfile(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       throw Boom.notFound(`coul not find user: ${username}`);
     }
 
+    const response = {
+      username: profile.username,
+      bio: profile.bio,
+      image: profile.image,
+      following: false,
+    };
+
+    if (!userId) {
+      // no authentication
+      return h.response({ profile: response }).code(200);
+    }
+
     const me = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -25,16 +42,14 @@ async function getProfile(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     });
 
     const following = me?.following.find((user) => user.id === profile.id);
+    response["following"] = Boolean(following);
 
-    const response = {
-      username: profile.username,
-      bio: profile.bio,
-      image: profile.image,
-      following: Boolean(following),
-    };
     return h.response({ profile: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
     return Boom.badImplementation("failed to get profile");
   }
 }

@@ -1,4 +1,5 @@
 import { ServerRoute } from "@hapi/hapi";
+import { API_AUTH_STATEGY } from "../../helpers/jwt";
 import { followUser, getProfile, unfollowUser } from "./handler";
 
 const routes: ServerRoute[] = [
@@ -7,7 +8,10 @@ const routes: ServerRoute[] = [
     path: "/profiles/{username}",
     handler: getProfile,
     options: {
-      auth: false,
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        mode: "try",
+      },
     },
   },
   {
