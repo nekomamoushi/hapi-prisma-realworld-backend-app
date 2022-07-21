@@ -4,6 +4,7 @@ import {
   addCommentToArticle,
   createArticle,
   deleteArticle,
+  deleteCommentToArticle,
   favoriteArticle,
   getAllArticle,
   getCommentsToArticle,
@@ -136,6 +137,16 @@ const routes: ServerRoute[] = [
     method: "GET",
     path: "/articles/{slug}/comments",
     handler: getCommentsToArticle,
+  },
+  {
+    method: "DELETE",
+    path: "/articles/{slug}/comments/{id}",
+    handler: deleteCommentToArticle,
+    options: {
+      auth: {
+        strategy: API_AUTH_STATEGY,
+      },
+    },
   },
 ];
 

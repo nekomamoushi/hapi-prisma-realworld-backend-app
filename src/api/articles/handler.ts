@@ -452,6 +452,38 @@ async function getCommentsToArticle(
   }
 }
 
+async function deleteCommentToArticle(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials as AuthCredentials;
+  const { slug, id } = request.params;
+
+  console.log(id);
+  try {
+    const comment = await prisma.comment.delete({
+      where: {
+        id: +id,
+      },
+      select: {
+        id: true,
+        body: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return h.response({ comment: comment }).code(200);
+  } catch (err: any) {
+    request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
+    return Boom.badImplementation("failed to delete comment to article");
+  }
+}
+
 function formatComment(comment: any, userId: number) {
   let following = comment.author.following;
   const isFollowing = !!following?.map((f: any) => f.id).includes(userId);
@@ -507,4 +539,5 @@ export {
   unfavoriteArticle,
   addCommentToArticle,
   getCommentsToArticle,
+  deleteCommentToArticle,
 };
