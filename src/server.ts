@@ -13,6 +13,9 @@ import tagsPlugin from "./api/tags";
 const server: Hapi.Server = Hapi.server({
   port: process.env.PORT || 3001,
   host: process.env.HOST || "localhost",
+  router: {
+    stripTrailingSlash: true,
+  },
   routes: {
     cors: {
       origin: ["http://localhost:4200"], // an array of origins or 'ignore'
