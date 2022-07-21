@@ -11,8 +11,13 @@ import articlesPlugin from "./api/articles";
 import tagsPlugin from "./api/tags";
 
 const server: Hapi.Server = Hapi.server({
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 3001,
   host: process.env.HOST || "localhost",
+  routes: {
+    cors: {
+      origin: ["http://localhost:4200"], // an array of origins or 'ignore'
+    },
+  },
 });
 
 const plugins: Hapi.Plugin<any>[] = [
