@@ -65,8 +65,13 @@ async function getSingleArticle(
   h: Hapi.ResponseToolkit
 ) {
   const { prisma } = request.server.app;
-  const { userId } = request.auth.credentials as AuthCredentials;
+  const { credentials } = request.auth;
   const { slug } = request.params;
+  let userId;
+
+  if (credentials) {
+    userId = credentials.userId;
+  }
 
   try {
     const article = await prisma.article.findUnique({
@@ -421,8 +426,13 @@ async function getCommentsToArticle(
   h: Hapi.ResponseToolkit
 ) {
   const { prisma } = request.server.app;
-  const { userId } = request.auth.credentials as AuthCredentials;
+  const { credentials } = request.auth;
   const { slug } = request.params;
+  let userId: number;
+
+  if (credentials) {
+    userId = credentials.userId;
+  }
 
   try {
     const comments = await prisma.comment.findMany({
@@ -438,6 +448,7 @@ async function getCommentsToArticle(
         },
       },
     });
+
     const response = comments.map((comment) => {
       return formatComment(comment, userId);
     });
@@ -482,7 +493,7 @@ async function deleteCommentToArticle(
   }
 }
 
-function formatComment(comment: any, userId: number) {
+function formatComment(comment: any, userId: number | undefined) {
   let following = comment.author.following;
   const isFollowing = !!following?.map((f: any) => f.id).includes(userId);
   const author = {
@@ -499,7 +510,7 @@ function formatComment(comment: any, userId: number) {
   return formattedComment;
 }
 
-function formatArticle(article: any, userId: number) {
+function formatArticle(article: any, userId: number | undefined) {
   let following = article.author.following;
   let favoritedBy = article.favoritedBy;
 

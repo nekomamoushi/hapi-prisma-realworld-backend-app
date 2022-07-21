@@ -36,7 +36,10 @@ const routes: ServerRoute[] = [
     path: "/articles/{slug}",
     handler: getSingleArticle,
     options: {
-      auth: false,
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        mode: "try",
+      },
     },
   },
   {
@@ -143,7 +146,10 @@ const routes: ServerRoute[] = [
     path: "/articles/{slug}/comments",
     handler: getCommentsToArticle,
     options: {
-      auth: false,
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        mode: "try",
+      },
     },
   },
   {
