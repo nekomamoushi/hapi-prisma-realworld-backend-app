@@ -1,6 +1,6 @@
 import Hapi, { AuthCredentials } from "@hapi/hapi";
 import Boom from "@hapi/boom";
-import { Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import slugify from "slugify";
 
 interface ArticlePayload {
@@ -215,18 +215,35 @@ async function createArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       },
     },
   };
+
   try {
-    const article = await prisma.article.create({
-      data,
-      include: articleInclude,
-    });
+    const tagsToAdd = await filterUniqueTags(prisma, tagList);
+
+    const [article, _] = await prisma.$transaction([
+      prisma.article.create({
+        data,
+        include: articleInclude,
+      }),
+      prisma.tag.createMany({
+        data: tagsToAdd,
+      }),
+    ]);
 
     const response = formatArticle(article, userId);
     return h.response({ article: response }).code(201);
   } catch (err: any) {
     request.log("error", err);
-    return Boom.badImplementation("failed to update current user");
+    return Boom.badImplementation("failed to create article");
   }
+}
+
+async function filterUniqueTags(prisma: PrismaClient, tagList: string[]) {
+  const allTags = await prisma.tag.findMany();
+  const allTagsStringArray = allTags.map((tag) => tag.tag);
+  const tagsToAdd = tagList.filter((tagName: string) => {
+    return !allTagsStringArray.includes(tagName);
+  });
+  return tagsToAdd.map((tag) => ({ tag: tag }));
 }
 
 async function updateArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
@@ -239,32 +256,39 @@ async function updateArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     } = request.payload as ArticlePayload;
     let updatedSlug;
 
-    const article = await prisma.article.findUnique({
+    const articleToUpdate = await prisma.article.findUnique({
       where: { slug },
       include: articleInclude,
     });
 
-    if (!article) {
+    if (!articleToUpdate) {
       throw Boom.notFound("could not find article");
     }
 
-    if (title && title !== article.title) {
+    if (title && title !== articleToUpdate.title) {
       updatedSlug = slugify(title);
     }
 
-    const data: Prisma.ArticleUpdateInput = {
-      title: title || article.title,
-      slug: title ? updatedSlug : article.slug,
-      description: description || article.description,
-      body: body || article.body,
-      tagList: tagList || article.tagList,
+    const data = {
+      title: title || articleToUpdate.title,
+      slug: title ? updatedSlug : articleToUpdate.slug,
+      description: description || articleToUpdate.description,
+      body: body || articleToUpdate.body,
+      tagList: tagList || articleToUpdate.tagList,
     };
 
-    const updatedArticle = await prisma.article.update({
-      where: { slug },
-      data,
-      include: articleInclude,
-    });
+    const tagsToAdd = await filterUniqueTags(prisma, tagList);
+
+    const [updatedArticle, _] = await prisma.$transaction([
+      prisma.article.update({
+        where: { slug },
+        data,
+        include: articleInclude,
+      }),
+      prisma.tag.createMany({
+        data: tagsToAdd,
+      }),
+    ]);
 
     const response = formatArticle(updatedArticle, userId);
     return h.response({ article: response }).code(200);
