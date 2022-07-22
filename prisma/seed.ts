@@ -45,7 +45,6 @@ async function main() {
       email: "germione@prisma.com",
     },
   });
-  console.log(user);
 
   const userCount = await prisma.user.aggregate({
     _count: true,

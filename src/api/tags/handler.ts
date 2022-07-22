@@ -9,7 +9,7 @@ async function getTags(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     const response = tags.map((t) => t.tag);
     return h.response({ tags: response }).code(200);
   } catch (err: any) {
-    console.error(err.message);
+    request.log("error", err);
     return Boom.badImplementation("failed to get tags");
   }
 }
