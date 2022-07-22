@@ -10,7 +10,7 @@ import { loginUserValidator, registerUserValidator } from "./validator";
 const routes: ServerRoute[] = [
   {
     method: "POST",
-    path: "/users",
+    path: "/api/users",
     handler: registerUser,
     options: {
       auth: false,
@@ -27,7 +27,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "POST",
-    path: "/users/login",
+    path: "/api/users/login",
     handler: loginUser,
     options: {
       auth: false,
@@ -42,7 +42,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "GET",
-    path: "/user",
+    path: "/api/user",
     handler: getCurrentUser,
     options: {
       auth: {
@@ -52,7 +52,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "PUT",
-    path: "/user",
+    path: "/api/user",
     handler: updateCurrentUser,
     options: {
       auth: {

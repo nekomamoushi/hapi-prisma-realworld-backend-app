@@ -33,7 +33,7 @@ function formatValidationErrors(err: any) {
 const routes: ServerRoute[] = [
   {
     method: "GET",
-    path: "/articles/{slug}",
+    path: "/api/articles/{slug}",
     handler: getSingleArticle,
     options: {
       auth: {
@@ -44,7 +44,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "GET",
-    path: "/articles",
+    path: "/api/articles",
     handler: getAllArticle,
     options: {
       auth: false,
@@ -52,7 +52,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "GET",
-    path: "/articles/feed",
+    path: "/api/articles/feed",
     handler: getFeed,
     options: {
       auth: {
@@ -62,7 +62,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "POST",
-    path: "/articles",
+    path: "/api/articles",
     handler: createArticle,
     options: {
       auth: {
@@ -79,7 +79,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "PUT",
-    path: "/articles/{slug}",
+    path: "/api/articles/{slug}",
     handler: updateArticle,
     options: {
       auth: {
@@ -96,7 +96,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "DELETE",
-    path: "/articles/{slug}",
+    path: "/api/articles/{slug}",
     handler: deleteArticle,
     options: {
       auth: {
@@ -106,7 +106,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "POST",
-    path: "/articles/{slug}/favorite",
+    path: "/api/articles/{slug}/favorite",
     handler: favoriteArticle,
     options: {
       auth: {
@@ -116,7 +116,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "DELETE",
-    path: "/articles/{slug}/favorite",
+    path: "/api/articles/{slug}/favorite",
     handler: unfavoriteArticle,
     options: {
       auth: {
@@ -126,7 +126,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "POST",
-    path: "/articles/{slug}/comments",
+    path: "/api/articles/{slug}/comments",
     handler: addCommentToArticle,
     options: {
       auth: {
@@ -143,7 +143,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "GET",
-    path: "/articles/{slug}/comments",
+    path: "/api/articles/{slug}/comments",
     handler: getCommentsToArticle,
     options: {
       auth: {
@@ -154,7 +154,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "DELETE",
-    path: "/articles/{slug}/comments/{id}",
+    path: "/api/articles/{slug}/comments/{id}",
     handler: deleteCommentToArticle,
     options: {
       auth: {

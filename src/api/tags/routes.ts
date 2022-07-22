@@ -4,7 +4,7 @@ import { getTags } from "./handler";
 const routes: ServerRoute[] = [
   {
     method: "GET",
-    path: "/tags",
+    path: "/api/tags",
     handler: getTags,
     options: {
       auth: false,

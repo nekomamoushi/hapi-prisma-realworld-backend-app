@@ -5,7 +5,7 @@ import { followUser, getProfile, unfollowUser } from "./handler";
 const routes: ServerRoute[] = [
   {
     method: "GET",
-    path: "/profiles/{username}",
+    path: "/api/profiles/{username}",
     handler: getProfile,
     options: {
       auth: {
@@ -16,7 +16,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "POST",
-    path: "/profiles/{username}/follow",
+    path: "/api/profiles/{username}/follow",
     handler: followUser,
     options: {
       auth: {
@@ -26,7 +26,7 @@ const routes: ServerRoute[] = [
   },
   {
     method: "DELETE",
-    path: "/profiles/{username}/follow",
+    path: "/api/profiles/{username}/follow",
     handler: unfollowUser,
     options: {
       auth: {
