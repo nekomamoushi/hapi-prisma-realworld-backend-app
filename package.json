@@ -2,11 +2,20 @@
   "name": "realworld-backend-hapi-prisma",
   "description": "> ### Hapi codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.",
   "version": "1.0.0",
-  "keywords": [],
-  "author": "",
+  "keywords": ["hapi", "prisma", "postgres"],
+  "author": "Jerome Pradier",
   "license": "ISC",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nekomamoushi/hapi-prisma-realworld-backend-app"
+  },
+  "bugs": {
+    "url": "https://github.com/nekomamoushi/hapi-prisma-realworld-backend-app/issues"
+  },
   "scripts": {
+    "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
     "start:watch": "nodemon ./index.ts",
     "postgres:start": "docker-compose up -d",
     "postgres:stop": "docker-compose down",
