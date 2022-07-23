@@ -36,6 +36,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/{slug}",
     handler: getSingleArticle,
     options: {
+      description: "Get Single Articles",
+      notes: "Returns a Article Object",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
         mode: "try",
@@ -47,6 +50,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles",
     handler: getAllArticle,
     options: {
+      description: "Get All Articles",
+      notes: "Returns a array of Article",
+      tags: ["api", "Articles"],
       auth: false,
     },
   },
@@ -55,6 +61,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/feed",
     handler: getFeed,
     options: {
+      description: "Get All Articles",
+      notes: "Returns a array of Article",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
       },
@@ -65,6 +74,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles",
     handler: createArticle,
     options: {
+      description: "Create an Article",
+      notes: "Returns an Article Object",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
       },
@@ -82,6 +94,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/{slug}",
     handler: updateArticle,
     options: {
+      description: "Update an Article",
+      notes: "Returns an Article Object",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
       },
@@ -99,6 +114,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/{slug}",
     handler: deleteArticle,
     options: {
+      description: "Delete an Article",
+      notes: "Returns an Article Object",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
       },
@@ -109,6 +127,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/{slug}/favorite",
     handler: favoriteArticle,
     options: {
+      description: "Favorite an Article",
+      notes: "Returns an Article Object",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
       },
@@ -119,6 +140,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/{slug}/favorite",
     handler: unfavoriteArticle,
     options: {
+      description: "Unfavorite an Article",
+      notes: "Returns an Article Object",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
       },
@@ -129,6 +153,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/{slug}/comments",
     handler: addCommentToArticle,
     options: {
+      description: "Create a Comment for an Article",
+      notes: "Returns an Comment Object",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
       },
@@ -146,6 +173,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/{slug}/comments",
     handler: getCommentsToArticle,
     options: {
+      description: "Get All Comments from an Articles",
+      notes: "Returns an array of Comments",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
         mode: "try",
@@ -157,6 +187,9 @@ const routes: ServerRoute[] = [
     path: "/api/articles/{slug}/comments/{id}",
     handler: deleteCommentToArticle,
     options: {
+      description: "Delete a Comment for an Article",
+      notes: "Returns an Comment Object",
+      tags: ["api", "Articles"],
       auth: {
         strategy: API_AUTH_STATEGY,
       },

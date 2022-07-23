@@ -8,6 +8,9 @@ const routes: ServerRoute[] = [
       return h.response({ up: true }).code(200);
     },
     options: {
+      description: "Get Server Status",
+      notes: "Returns an object with the server status",
+      tags: ["api", "Status"],
       auth: false,
     },
   },

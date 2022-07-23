@@ -7,6 +7,9 @@ const routes: ServerRoute[] = [
     path: "/api/tags",
     handler: getTags,
     options: {
+      description: "Get All Tags",
+      notes: "Returns an array of tags",
+      tags: ["api", "Tags"],
       auth: false,
     },
   },

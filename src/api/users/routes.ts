@@ -13,6 +13,9 @@ const routes: ServerRoute[] = [
     path: "/api/users",
     handler: registerUser,
     options: {
+      description: "Create a User",
+      notes: "Returns a User Object",
+      tags: ["api", "Users"],
       auth: false,
       validate: {
         payload: registerUserValidator,
@@ -30,6 +33,9 @@ const routes: ServerRoute[] = [
     path: "/api/users/login",
     handler: loginUser,
     options: {
+      description: "Log In a User",
+      notes: "Returns a User Object",
+      tags: ["api", "Users"],
       auth: false,
       validate: {
         payload: loginUserValidator,
@@ -45,6 +51,9 @@ const routes: ServerRoute[] = [
     path: "/api/user",
     handler: getCurrentUser,
     options: {
+      description: "Get User Information",
+      notes: "Returns a User Object",
+      tags: ["api", "Users"],
       auth: {
         strategy: "jwt",
       },
@@ -55,6 +64,9 @@ const routes: ServerRoute[] = [
     path: "/api/user",
     handler: updateCurrentUser,
     options: {
+      description: "Update User Information",
+      notes: "Returns a User Object",
+      tags: ["api", "Users"],
       auth: {
         strategy: "jwt",
       },
