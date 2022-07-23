@@ -1,22 +1,26 @@
+import dotenv from "dotenv";
 import Hapi, { server } from "@hapi/hapi";
 import Glue from "@hapi/glue";
-import hapiAuthJwt2 from "hapi-auth-jwt2";
+import HapiAuthJwt2 from "hapi-auth-jwt2";
 
 import HapiInert from "@hapi/inert";
 import HapiVision from "@hapi/vision";
 import HapiSwagger from "hapi-swagger";
+
 import Package from "../package.json";
-import jwtPlugin from "../src/plugins/jwt";
-import prismaPlugin from "../src/plugins/prisma";
-import statusPlugin from "../src/api/status";
-import usersPlugin from "../src/api/users";
-import profilesPlugin from "../src/api/profiles";
-import articlesPlugin from "../src/api/articles";
-import tagsPlugin from "../src/api/tags";
+import JwtPlugin from "../src/plugins/jwt";
+import PrismaPlugin from "../src/plugins/prisma";
+import StatusPlugin from "../src/api/status";
+import UsersPlugin from "../src/api/users";
+import ProfilesPlugin from "../src/api/profiles";
+import ArticlesPlugin from "../src/api/articles";
+import TagsPlugin from "../src/api/tags";
+
+dotenv.config({ path: `${__dirname}/../.env` });
 
 const serverOptions: Hapi.ServerOptions = {
-  host: "localhost",
-  port: 3001,
+  host: process.env.HAPI_HOST || "localhost",
+  port: process.env.HAPI_PORT || 3001,
   router: {
     stripTrailingSlash: true,
   },
@@ -50,32 +54,32 @@ const pluginList = [
     options: swaggerOptions,
   },
   {
-    plugin: prismaPlugin,
+    plugin: PrismaPlugin,
   },
   // JWT authentication
   {
-    plugin: hapiAuthJwt2,
+    plugin: HapiAuthJwt2,
   },
   {
-    plugin: jwtPlugin,
+    plugin: JwtPlugin,
   },
   //***********************
   //  APPLICATION ROUTES  *
   //***********************
   {
-    plugin: statusPlugin,
+    plugin: StatusPlugin,
   },
   {
-    plugin: usersPlugin,
+    plugin: UsersPlugin,
   },
   {
-    plugin: profilesPlugin,
+    plugin: ProfilesPlugin,
   },
   {
-    plugin: articlesPlugin,
+    plugin: ArticlesPlugin,
   },
   {
-    plugin: tagsPlugin,
+    plugin: TagsPlugin,
   },
 ];
 
