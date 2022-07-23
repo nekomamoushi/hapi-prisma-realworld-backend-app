@@ -1,4 +1,4 @@
-import Hapi from "@hapi/hapi";
+import Hapi, { ResponseObject } from "@hapi/hapi";
 import Glue from "@hapi/glue";
 import Manifest from "../config/manifest";
 
@@ -8,6 +8,18 @@ const options = {
 
 export async function createServer(): Promise<Hapi.Server> {
   const server = await Glue.compose(Manifest, options);
+  server.events.on("response", function (request: Hapi.Request) {
+    const response = request.response as ResponseObject;
+    console.log(
+      request.info.remoteAddress +
+        ": " +
+        request.method.toUpperCase() +
+        " " +
+        request.path +
+        " --> " +
+        response.statusCode
+    );
+  });
   await server.start();
   return server;
 }
