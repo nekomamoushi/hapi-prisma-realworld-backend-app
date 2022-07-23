@@ -19,6 +19,7 @@
   },
   "scripts": {
     "build": "prisma generate && tsc",
+    "seed": "ts-node prisma/seed.ts",
     "start": "node dist/index.js",
     "start:watch": "nodemon ./index.ts",
     "postgres:start": "docker-compose up -d",
