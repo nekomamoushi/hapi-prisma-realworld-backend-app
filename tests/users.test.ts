@@ -259,4 +259,82 @@ describe("server status", () => {
     expect(currentUserPayload.token).to.exist().to.be.a.string();
     expect(currentUserPayload.token).to.equal(token);
   });
+
+  it("forbids to update user info with wrong credentials", async () => {
+    const currentUser = await server.inject({
+      method: "GET",
+      url: "/api/user",
+    });
+
+    expect(currentUser.statusCode).to.equal(401);
+  });
+
+  it("updates user info", async () => {
+    let udpateUser = await server.inject({
+      method: "PUT",
+      url: "/api/user",
+      headers: {
+        authorization: `Token ${token}`,
+      },
+      payload: {
+        user: {
+          bio: "je suis une fougere",
+        },
+      },
+    });
+
+    expect(udpateUser.statusCode).to.equal(200);
+
+    const { user: currentUserPayload } = JSON.parse(
+      udpateUser.payload
+    ) as UserPayload;
+
+    expect(currentUserPayload.username).to.equal("username");
+    expect(currentUserPayload.email).to.equal("useremail@email.com");
+    expect(currentUserPayload.bio).to.equal("je suis une fougere");
+    expect(currentUserPayload.image).to.be.empty();
+    expect(currentUserPayload.token).to.exist().to.be.a.string();
+    expect(currentUserPayload.token).to.equal(token);
+
+    udpateUser = await server.inject({
+      method: "PUT",
+      url: "/api/user",
+      headers: {
+        authorization: `Token ${token}`,
+      },
+      payload: {
+        user: {
+          password: "wordpass",
+        },
+      },
+    });
+
+    expect(udpateUser.statusCode).to.equal(200);
+
+    let loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "useremail@email.com",
+          password: "password",
+        },
+      },
+    });
+
+    expect(loginUser.statusCode).to.equal(403);
+
+    loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "useremail@email.com",
+          password: "wordpass",
+        },
+      },
+    });
+
+    expect(loginUser.statusCode).to.equal(200);
+  });
 });
