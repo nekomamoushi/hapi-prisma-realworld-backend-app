@@ -24,14 +24,14 @@ async function main() {
           data: [
             {
               title: "How to defy your cat",
-              slug: "how-to-defy-your-cat",
+              slug: "How-to-defy-your-cat",
               description: "Hard right?",
               body: "meow strongly",
               tagList: ["defy", "cats"],
             },
             {
               title: "How to eat a fish",
-              slug: "how-to-eat-a-fish",
+              slug: "How-to-eat-a-fish",
               description: "Easy Peasy",
               body: "open your mouth strongly",
               tagList: ["eat", "fish"],
@@ -60,7 +60,7 @@ async function main() {
           data: [
             {
               title: "How Angular Standalone components works",
-              slug: "how-angular-standalone-components-works",
+              slug: "How-angular-standalone-components-works",
               description: "Simplify angular development",
               body: "We don't use NgModules anymore",
               tagList: ["angular", "modules", "standalone", "components"],
