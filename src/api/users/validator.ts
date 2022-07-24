@@ -2,11 +2,9 @@ import Joi from "joi";
 
 const userPayloadValidator = Joi.object({
   user: Joi.object({
-    email: Joi.string().alter({
-      register: (schema) =>
-        schema.required().error((errors) => new Error(`email can't be blank`)),
-      login: (schema) => schema.required(),
-    }),
+    email: Joi.string()
+      .required()
+      .error((errors) => new Error(`email can't be blank`)),
     username: Joi.string().alter({
       register: (schema) =>
         schema
@@ -14,13 +12,9 @@ const userPayloadValidator = Joi.object({
           .error((errors) => new Error(`username can't be blank`)),
       login: (schema) => schema.optional(),
     }),
-    password: Joi.string().alter({
-      register: (schema) =>
-        schema
-          .required()
-          .error((errors) => new Error(`password can't be blank`)),
-      login: (schema) => schema.required(),
-    }),
+    password: Joi.string()
+      .required()
+      .error((errors) => new Error(`password can't be blank`)),
     bio: Joi.string().optional(),
     image: Joi.string().optional(),
   }),
