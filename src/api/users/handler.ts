@@ -9,7 +9,7 @@ declare module "@hapi/hapi" {
   }
 }
 
-interface UserPayload {
+export interface UserPayload {
   user: {
     email: string;
     username: string;
@@ -34,7 +34,7 @@ async function registerUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     });
 
     if (user) {
-      throw Boom.badRequest("user already exists");
+      throw Boom.forbidden("user already exists");
     }
 
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -63,9 +63,12 @@ async function registerUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       image: createdUser.image,
       token,
     };
-    return h.response({ users: response }).code(200);
+    return h.response({ user: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
     return Boom.badImplementation("failed to register user");
   }
 }
@@ -104,6 +107,9 @@ async function loginUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     return h.response({ user: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
     return Boom.badImplementation("failed to login user");
   }
 }
@@ -120,7 +126,7 @@ async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     });
 
     if (!user) {
-      throw Boom.badImplementation("could not find user");
+      throw Boom.notFound("could not find user");
     }
 
     const response = {
@@ -134,6 +140,9 @@ async function getCurrentUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     return h.response({ user: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
+    if (err.isBoom) {
+      return err;
+    }
     return Boom.badImplementation("failed to get current user");
   }
 }
