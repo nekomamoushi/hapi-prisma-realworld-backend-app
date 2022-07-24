@@ -87,12 +87,12 @@ async function loginUser(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     });
 
     if (!user) {
-      throw Boom.badRequest("user does not exists");
+      throw Boom.notFound("user does not exists");
     }
 
     const validPassword = await bcrypt.compare(password, user?.password);
     if (!validPassword) {
-      throw Boom.badRequest("password is not valid");
+      throw Boom.forbidden("password is not valid");
     }
 
     const token = generateJwtToken(user.id);

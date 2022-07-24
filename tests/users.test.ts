@@ -118,4 +118,113 @@ describe("server status", () => {
 
     expect(registerUser.statusCode).to.equal(403);
   });
+
+  it("fails to login user", async () => {
+    let loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "",
+          password: "",
+        },
+      },
+    });
+
+    expect(loginUser.statusCode).to.equal(422);
+    expect(loginUser.result).equal({
+      errors: {
+        email: ["can't be blank"],
+      },
+    });
+
+    loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "user@test.com",
+          password: "",
+        },
+      },
+    });
+    expect(loginUser.statusCode).to.equal(422);
+    expect(loginUser.result).equal({
+      errors: {
+        password: ["can't be blank"],
+      },
+    });
+
+    loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "",
+          password: "password",
+        },
+      },
+    });
+    expect(loginUser.statusCode).to.equal(422);
+    expect(loginUser.result).equal({
+      errors: {
+        email: ["can't be blank"],
+      },
+    });
+  });
+
+  it("forbids to login a invalid user", async () => {
+    let loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "wrong@email.com",
+          password: "password",
+        },
+      },
+    });
+
+    expect(loginUser.statusCode).to.equal(404);
+
+    loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "useremail@email.com",
+          password: "password2",
+        },
+      },
+    });
+
+    expect(loginUser.statusCode).to.equal(403);
+  });
+
+  it("logins a valid user", async () => {
+    let loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "useremail@email.com",
+          password: "password",
+        },
+      },
+    });
+
+    expect(loginUser.statusCode).to.equal(200);
+
+    const { user: loginUserPayload } = JSON.parse(
+      loginUser.payload
+    ) as UserPayload;
+
+    expect(loginUserPayload.username).to.equal("username");
+    expect(loginUserPayload.email).to.equal("useremail@email.com");
+    expect(loginUserPayload.bio).to.be.empty();
+    expect(loginUserPayload.image).to.be.empty();
+    expect(loginUserPayload.token).to.exist().to.be.a.string();
+
+    token = loginUserPayload.token;
+  });
 });
