@@ -24,7 +24,8 @@
     "start:watch": "nodemon ./index.ts",
     "postgres:start": "docker-compose up -d",
     "postgres:stop": "docker-compose down",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "test:status": "NODE_ENV=test ts-node prisma/seed.ts && lab --typescript -v tests/status.test.ts"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.0",
@@ -41,6 +42,8 @@
     "slugify": "^1.6.5"
   },
   "devDependencies": {
+    "@hapi/code": "^9.0.1",
+    "@hapi/lab": "^25.0.1",
     "@types/bcrypt": "^5.0.0",
     "@types/boom": "^7.3.2",
     "@types/hapi__glue": "^6.1.5",
