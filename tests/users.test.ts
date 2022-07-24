@@ -227,4 +227,36 @@ describe("server status", () => {
 
     token = loginUserPayload.token;
   });
+
+  it("forbids to get user info with wrong credentials", async () => {
+    const currentUser = await server.inject({
+      method: "GET",
+      url: "/api/user",
+    });
+
+    expect(currentUser.statusCode).to.equal(401);
+  });
+
+  it("gets current user info", async () => {
+    const currentUser = await server.inject({
+      method: "GET",
+      url: "/api/user",
+      headers: {
+        authorization: `Token ${token}`,
+      },
+    });
+
+    expect(currentUser.statusCode).to.equal(200);
+
+    const { user: currentUserPayload } = JSON.parse(
+      currentUser.payload
+    ) as UserPayload;
+
+    expect(currentUserPayload.username).to.equal("username");
+    expect(currentUserPayload.email).to.equal("useremail@email.com");
+    expect(currentUserPayload.bio).to.be.empty();
+    expect(currentUserPayload.image).to.be.empty();
+    expect(currentUserPayload.token).to.exist().to.be.a.string();
+    expect(currentUserPayload.token).to.equal(token);
+  });
 });
