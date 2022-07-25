@@ -26,7 +26,8 @@
     "postgres:stop": "docker-compose down",
     "prisma:generate": "prisma generate",
     "test:status": "NODE_ENV=test npm run seed && lab --typescript -v tests/status.test.ts",
-    "test:users": "NODE_ENV=test npm run seed && lab --typescript -v tests/users.test.ts"
+    "test:users": "NODE_ENV=test npm run seed && lab --typescript -v tests/users.test.ts",
+    "test:articles": "NODE_ENV=test npm run seed && lab --typescript -v tests/articles.test.ts"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.0",
