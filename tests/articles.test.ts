@@ -119,4 +119,62 @@ describe("server status", () => {
     expect(article.author).to.be.an.object();
     expect(article.author.username).to.be.a.string().to.be.equal("germione");
   });
+
+  it("logins a valid user", async () => {
+    let loginUser = await server.inject({
+      method: "POST",
+      url: "/api/users/login",
+      payload: {
+        user: {
+          email: "germione@prisma.com",
+          password: "passeword",
+        },
+      },
+    });
+
+    expect(loginUser.statusCode).to.equal(200);
+
+    const { user: loginUserPayload } = JSON.parse(
+      loginUser.payload
+    ) as UserPayload;
+
+    token = loginUserPayload.token;
+  });
+
+  it("gets feed for a user", async () => {
+    let feed = await server.inject({
+      method: "GET",
+      url: "/api/articles/feed",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+    });
+
+    expect(feed.statusCode).to.equal(200);
+
+    const { articles, articlesCount } = JSON.parse(
+      feed.payload
+    ) as ArticlesResponse;
+
+    expect(articles).to.be.an.array();
+    expect(articles.length).to.equal(0);
+    expect(articlesCount).to.be.a.number().to.equal(0);
+  });
+
+  it("finds all article", async () => {
+    let allArticles = await server.inject({
+      method: "GET",
+      url: "/api/articles",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+    });
+
+    expect(allArticles.statusCode).to.equal(200);
+
+    const { articles } = JSON.parse(allArticles.payload) as ArticlesResponse;
+
+    expect(articles).to.be.an.array();
+    expect(articles.length).to.be.equal(3);
+  });
 });
