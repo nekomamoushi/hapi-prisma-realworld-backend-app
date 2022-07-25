@@ -343,4 +343,112 @@ describe("server status", () => {
     expect(article.author).to.be.an.object();
     expect(article.author.username).to.equal("germione");
   });
+
+  it("forbids to favorite an article", async () => {
+    let article = await server.inject({
+      method: "POST",
+      url: "/api/articles/How-angular-standalone-components-works/favorite",
+    });
+
+    expect(article.statusCode).to.equal(401);
+  });
+
+  it("favorite an article", async () => {
+    let favoritedArticle = await server.inject({
+      method: "POST",
+      url: "/api/articles/How-angular-standalone-components-works/favorite",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+    });
+
+    expect(favoritedArticle.statusCode).to.equal(200);
+  });
+
+  it("check favorite count for an article", async () => {
+    let favoritedArticle = await server.inject({
+      method: "GET",
+      url: "/api/articles/How-angular-standalone-components-works",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+    });
+    expect(favoritedArticle.statusCode).to.equal(200);
+    const { article } = JSON.parse(favoritedArticle.payload) as {
+      article: ArticleResponse;
+    };
+    expect(article).to.be.an.object();
+    expect(article.favorited).to.be.a.boolean().to.equal(true);
+    expect(article.favoritesCount).to.equal(1);
+
+    expect(article.author).to.be.an.object();
+    expect(article.author.username).to.equal("naboo");
+  });
+
+  it("gets all article favorited by a user", async () => {
+    const favoritedArticles = await server.inject({
+      method: "GET",
+      url: "/api/articles?favorited=germione",
+    });
+
+    expect(favoritedArticles.statusCode).to.equal(200);
+    const { articles, articlesCount } = JSON.parse(
+      favoritedArticles.payload
+    ) as ArticlesResponse;
+    expect(articlesCount).to.equal(1);
+  });
+
+  it("forbids to unfavorite an article", async () => {
+    let article = await server.inject({
+      method: "DELETE",
+      url: "/api/articles/How-angular-standalone-components-works/favorite",
+    });
+
+    expect(article.statusCode).to.equal(401);
+  });
+
+  it("unfavorite an article", async () => {
+    let article = await server.inject({
+      method: "DELETE",
+      url: "/api/articles/How-angular-standalone-components-works/favorite",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+    });
+
+    expect(article.statusCode).to.equal(200);
+  });
+
+  it("check favorite count for an article", async () => {
+    let favoritedArticle = await server.inject({
+      method: "GET",
+      url: "/api/articles/How-angular-standalone-components-works",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+    });
+    expect(favoritedArticle.statusCode).to.equal(200);
+    const { article } = JSON.parse(favoritedArticle.payload) as {
+      article: ArticleResponse;
+    };
+    expect(article).to.be.an.object();
+    expect(article.favorited).to.be.a.boolean().to.equal(false);
+    expect(article.favoritesCount).to.equal(0);
+
+    expect(article.author).to.be.an.object();
+    expect(article.author.username).to.equal("naboo");
+  });
+
+  it("gets all article favorited by a user", async () => {
+    const favoritedArticles = await server.inject({
+      method: "GET",
+      url: "/api/articles?favorited=germione",
+    });
+
+    expect(favoritedArticles.statusCode).to.equal(200);
+    const { articlesCount } = JSON.parse(
+      favoritedArticles.payload
+    ) as ArticlesResponse;
+    expect(articlesCount).to.equal(0);
+  });
 });

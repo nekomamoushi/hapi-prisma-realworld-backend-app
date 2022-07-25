@@ -103,7 +103,7 @@ async function getSingleArticle(
 async function getAllArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { userId } = request.params;
-  const { limit, offset, author, tag } = request.query;
+  const { limit, offset, author, tag, favorited } = request.query;
 
   const take = limit ? +limit : 0;
   const skip = offset ? +offset : 0;
@@ -113,7 +113,7 @@ async function getAllArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     orderBy: { updatedAt: "desc" },
   };
 
-  if (author || tag) {
+  if (author || tag || favorited) {
     query["where"] = {
       AND: [],
     };
@@ -133,6 +133,18 @@ async function getAllArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     query["where"]["AND"].push({
       tagList: {
         has: tag,
+      },
+    });
+  }
+
+  if (favorited) {
+    query["where"]["AND"].push({
+      favoritedBy: {
+        some: {
+          username: {
+            equals: favorited,
+          },
+        },
       },
     });
   }
