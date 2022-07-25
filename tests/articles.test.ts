@@ -7,6 +7,7 @@ import {
   ArticlePayload,
   ArticleResponse,
   ArticlesResponse,
+  CommentResponse,
 } from "../src/api/articles/handler";
 
 const { describe, it, after, before } = (exports.lab = Lab.script());
@@ -15,6 +16,7 @@ const { expect } = Code;
 describe("server status", () => {
   let server: Hapi.Server;
   let token: string | undefined;
+  let commentId: number | undefined;
 
   before(async () => {
     server = await createServer();
@@ -450,5 +452,99 @@ describe("server status", () => {
       favoritedArticles.payload
     ) as ArticlesResponse;
     expect(articlesCount).to.equal(0);
+  });
+
+  it("gets comments for an article", async () => {
+    let articleComments = await server.inject({
+      method: "GET",
+      url: "/api/articles/How-angular-standalone-components-works/comments",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    expect(articleComments.statusCode).to.equal(200);
+    const { comments } = JSON.parse(articleComments.payload) as {
+      comments: CommentResponse[];
+    };
+    expect(comments).to.be.an.array();
+    expect(comments.length).to.equal(0);
+  });
+
+  it("creates comment for an article", async () => {
+    let articleComment = await server.inject({
+      method: "POST",
+      url: "/api/articles/How-angular-standalone-components-works/comments",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+      payload: {
+        comment: {
+          body: "It's sucks!",
+        },
+      },
+    });
+
+    expect(articleComment.statusCode).to.equal(201);
+    const { comment } = JSON.parse(articleComment.payload) as {
+      comment: CommentResponse;
+    };
+    expect(comment).to.be.an.object();
+    expect(comment.body).to.equal("It's sucks!");
+    expect(comment.author.username).to.equal("germione");
+  });
+
+  it("gets comments for an article", async () => {
+    let articleComments = await server.inject({
+      method: "GET",
+      url: "/api/articles/How-angular-standalone-components-works/comments",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    expect(articleComments.statusCode).to.equal(200);
+    const { comments } = JSON.parse(articleComments.payload) as {
+      comments: CommentResponse[];
+    };
+    expect(comments).to.be.an.array();
+    expect(comments.length).to.equal(1);
+  });
+
+  it("creates comment for an article", async () => {
+    let articleComment = await server.inject({
+      method: "POST",
+      url: "/api/articles/How-angular-standalone-components-works/comments",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+      payload: {
+        comment: {
+          body: "It's sucks!",
+        },
+      },
+    });
+
+    expect(articleComment.statusCode).to.equal(201);
+    const { comment } = JSON.parse(articleComment.payload) as {
+      comment: CommentResponse;
+    };
+    expect(comment).to.be.an.object();
+    expect(comment.body).to.equal("It's sucks!");
+    expect(comment.author.username).to.equal("germione");
+
+    commentId = comment.id;
+  });
+
+  it("deletes comment for an article", async () => {
+    let deletedComment = await server.inject({
+      method: "DELETE",
+      url: `/api/articles/How-angular-standalone-components-works/comments/${commentId}`,
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    expect(deletedComment.statusCode).to.equal(200);
   });
 });

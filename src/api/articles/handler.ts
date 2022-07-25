@@ -40,7 +40,7 @@ export interface ArticleResponse {
   };
 }
 
-interface CommentResponse {
+export interface CommentResponse {
   id: number;
   createdAt: string;
   updatedAt: string;
@@ -510,6 +510,7 @@ async function getCommentsToArticle(
     const response = comments.map((comment) => {
       return formatComment(comment, userId);
     });
+
     return h.response({ comments: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
