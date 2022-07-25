@@ -9,19 +9,19 @@ import {
   ArticlesResponse,
 } from "../src/api/articles/handler";
 
-const { describe, it, afterEach, beforeEach } = (exports.lab = Lab.script());
+const { describe, it, after, before } = (exports.lab = Lab.script());
 const { expect } = Code;
 
 describe("server status", () => {
   let server: Hapi.Server;
   let token: string | undefined;
 
-  beforeEach(async () => {
+  before(async () => {
     server = await createServer();
     server.start();
   });
 
-  afterEach(async () => {
+  after(async () => {
     await server.stop();
   });
 
