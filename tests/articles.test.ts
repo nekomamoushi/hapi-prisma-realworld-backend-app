@@ -291,19 +291,42 @@ describe("server status", () => {
     expect(article.author.username).to.equal("germione");
   });
 
-  it("updates an article", async () => {
+  it("creates an article with no tags", async () => {
     let createdArticle = await server.inject({
-      method: "PUT",
-      url: "/api/articles/When-the-sun-goes-down",
+      method: "POST",
+      url: "/api/articles",
       headers: {
         Authorization: `token ${token}`,
       },
       payload: {
         article: {
-          title: "When the sun goes up ?",
+          title: "Can you feel the love tonight?",
           description: "Easy right?",
-          body: "At dawn",
-          tagList: ["sun", "time"],
+          body: "At night",
+        },
+      },
+    });
+
+    expect(createdArticle.statusCode).to.equal(201);
+
+    const { article } = JSON.parse(createdArticle.payload) as {
+      article: ArticleResponse;
+    };
+    expect(article).to.be.an.object();
+    expect(article.author).to.be.an.object();
+    expect(article.author.username).to.equal("germione");
+  });
+
+  it("updates an article wiith no tags", async () => {
+    let createdArticle = await server.inject({
+      method: "PUT",
+      url: "/api/articles/Can-you-feel-the-love-tonight",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+      payload: {
+        article: {
+          description: "Easy lover",
         },
       },
     });
@@ -314,8 +337,9 @@ describe("server status", () => {
       article: ArticleResponse;
     };
     expect(article).to.be.an.object();
-    expect(article.slug).to.equal("When-the-sun-goes-up");
-    expect(article.body).to.equal("At dawn");
+    expect(article.slug).to.equal("Can-you-feel-the-love-tonight");
+    expect(article.body).to.equal("At night");
+    expect(article.description).to.equal("Easy lover");
     expect(article.author).to.be.an.object();
     expect(article.author.username).to.equal("germione");
   });

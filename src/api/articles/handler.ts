@@ -3,7 +3,7 @@ import Boom from "@hapi/boom";
 import { PrismaClient } from "@prisma/client";
 import slugify from "slugify";
 
-interface ArticlePayload {
+export interface ArticlePayload {
   article: {
     title: string;
     description: string;
@@ -17,7 +17,12 @@ interface CommentPayload {
     body: string;
   };
 }
-interface ArticleResponse {
+
+export interface ArticlesResponse {
+  articles: ArticleResponse[];
+  articlesCount: number;
+}
+export interface ArticleResponse {
   slug: string;
   title: string;
   description: string;
@@ -217,27 +222,37 @@ async function createArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   };
 
   try {
-    const tagsToAdd = await filterUniqueTags(prisma, tagList);
-
-    const [article, _] = await prisma.$transaction([
+    const operations: any[] = [
       prisma.article.create({
         data,
         include: articleInclude,
       }),
-      prisma.tag.createMany({
-        data: tagsToAdd,
-      }),
-    ]);
+    ];
+
+    const tagsToAdd = await filterUniqueTags(prisma, tagList);
+    if (tagsToAdd.length > 0) {
+      operations.push(
+        prisma.tag.createMany({
+          data: tagsToAdd,
+        })
+      );
+    }
+
+    const [article, _] = await prisma.$transaction(operations);
 
     const response = formatArticle(article, userId);
     return h.response({ article: response }).code(201);
   } catch (err: any) {
+    console.log(err);
     request.log("error", err);
     return Boom.badImplementation("failed to create article");
   }
 }
 
 async function filterUniqueTags(prisma: PrismaClient, tagList: string[]) {
+  if (!tagList || tagList.length === 0) {
+    return [];
+  }
   const allTags = await prisma.tag.findMany();
   const allTagsStringArray = allTags.map((tag) => tag.tag);
   const tagsToAdd = tagList.filter((tagName: string) => {
@@ -277,22 +292,29 @@ async function updateArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
       tagList: tagList || articleToUpdate.tagList,
     };
 
-    const tagsToAdd = await filterUniqueTags(prisma, tagList);
-
-    const [updatedArticle, _] = await prisma.$transaction([
+    const operations: any[] = [
       prisma.article.update({
         where: { slug },
         data,
         include: articleInclude,
       }),
-      prisma.tag.createMany({
-        data: tagsToAdd,
-      }),
-    ]);
+    ];
+
+    const tagsToAdd = await filterUniqueTags(prisma, tagList);
+    if (tagsToAdd.length > 0) {
+      operations.push(
+        prisma.tag.createMany({
+          data: tagsToAdd,
+        })
+      );
+    }
+
+    const [updatedArticle, _] = await prisma.$transaction(operations);
 
     const response = formatArticle(updatedArticle, userId);
     return h.response({ article: response }).code(200);
   } catch (err: any) {
+    console.log(err);
     request.log("error", err);
     return Boom.badImplementation("failed to update article");
   }
