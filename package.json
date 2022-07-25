@@ -28,7 +28,8 @@
     "test:status": "NODE_ENV=test npm run seed && lab --typescript -v tests/status.test.ts",
     "test:users": "NODE_ENV=test npm run seed && lab --typescript -v tests/users.test.ts",
     "test:profiles": "NODE_ENV=test npm run seed && lab --typescript -v tests/profiles.test.ts",
-    "test:articles": "NODE_ENV=test npm run seed && lab --typescript -v tests/articles.test.ts"
+    "test:articles": "NODE_ENV=test npm run seed && lab --typescript -v tests/articles.test.ts",
+    "test:tags": "NODE_ENV=test npm run seed && lab --typescript -v tests/tags.test.ts"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.0",

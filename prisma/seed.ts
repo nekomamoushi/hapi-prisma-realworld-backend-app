@@ -71,13 +71,18 @@ async function main() {
     },
   });
 
-  const userCount = await prisma.user.aggregate({
-    _count: true,
+  const tags = await prisma.tag.createMany({
+    data: [
+      { tag: "animal" },
+      { tag: "defy" },
+      { tag: "cats" },
+      { tag: "eat" },
+      { tag: "angular" },
+      { tag: "modules" },
+      { tag: "standalone" },
+      { tag: "components" },
+    ],
   });
-  console.log(`${userCount._count} users created:`);
-  console.log(`  - ${user1.username}`);
-  console.log(`  - ${user2.username}`);
-  console.log(`  - ${user3.username}`);
 }
 
 main()

@@ -1,6 +1,10 @@
 import Hapi from "@hapi/hapi";
 import Boom from "@hapi/boom";
 
+export interface TagResponse {
+  tags: string[];
+}
+
 async function getTags(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
 
