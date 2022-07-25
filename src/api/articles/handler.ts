@@ -255,7 +255,6 @@ async function createArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     const response = formatArticle(article, userId);
     return h.response({ article: response }).code(201);
   } catch (err: any) {
-    console.log(err);
     request.log("error", err);
     return Boom.badImplementation("failed to create article");
   }
@@ -326,7 +325,6 @@ async function updateArticle(request: Hapi.Request, h: Hapi.ResponseToolkit) {
     const response = formatArticle(updatedArticle, userId);
     return h.response({ article: response }).code(200);
   } catch (err: any) {
-    console.log(err);
     request.log("error", err);
     return Boom.badImplementation("failed to update article");
   }
