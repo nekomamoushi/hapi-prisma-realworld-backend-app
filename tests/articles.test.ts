@@ -177,4 +177,146 @@ describe("server status", () => {
     expect(articles).to.be.an.array();
     expect(articles.length).to.be.equal(3);
   });
+
+  it("fails to create an article", async () => {
+    let nonCreaterArticle = await server.inject({
+      method: "POST",
+      url: "/api/articles",
+      payload: {
+        article: {
+          title: "When the sun goes down",
+          description: "Easy right?",
+          body: "At sunset",
+          tagList: ["sun", "time"],
+        },
+      },
+    });
+
+    expect(nonCreaterArticle.statusCode).to.equal(401);
+
+    nonCreaterArticle = await server.inject({
+      method: "POST",
+      url: "/api/articles",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+      payload: {
+        article: {
+          title: "",
+          description: "Easy right?",
+          body: "At sunset",
+          tagList: ["sun", "time"],
+        },
+      },
+    });
+
+    expect(nonCreaterArticle.statusCode).to.equal(422);
+    expect(nonCreaterArticle.result).equal({
+      errors: {
+        title: ["can't be blank"],
+      },
+    });
+
+    nonCreaterArticle = await server.inject({
+      method: "POST",
+      url: "/api/articles",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+      payload: {
+        article: {
+          title: "Hey I just met you",
+          description: "",
+          body: "At sunset",
+          tagList: ["sun", "time"],
+        },
+      },
+    });
+
+    expect(nonCreaterArticle.statusCode).to.equal(422);
+    expect(nonCreaterArticle.result).equal({
+      errors: {
+        description: ["can't be blank"],
+      },
+    });
+
+    nonCreaterArticle = await server.inject({
+      method: "POST",
+      url: "/api/articles",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+      payload: {
+        article: {
+          title: "Hey I just met you",
+          description: "Desc",
+          body: "",
+          tagList: ["sun", "time"],
+        },
+      },
+    });
+
+    expect(nonCreaterArticle.statusCode).to.equal(422);
+    expect(nonCreaterArticle.result).equal({
+      errors: {
+        body: ["can't be blank"],
+      },
+    });
+  });
+
+  it("creates an article", async () => {
+    let createdArticle = await server.inject({
+      method: "POST",
+      url: "/api/articles",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+      payload: {
+        article: {
+          title: "When the sun goes down ?",
+          description: "Easy right?",
+          body: "At sunset",
+          tagList: ["sun", "time"],
+        },
+      },
+    });
+
+    expect(createdArticle.statusCode).to.equal(201);
+
+    const { article } = JSON.parse(createdArticle.payload) as {
+      article: ArticleResponse;
+    };
+    expect(article).to.be.an.object();
+    expect(article.author).to.be.an.object();
+    expect(article.author.username).to.equal("germione");
+  });
+
+  it("updates an article", async () => {
+    let createdArticle = await server.inject({
+      method: "PUT",
+      url: "/api/articles/When-the-sun-goes-down",
+      headers: {
+        Authorization: `token ${token}`,
+      },
+      payload: {
+        article: {
+          title: "When the sun goes up ?",
+          description: "Easy right?",
+          body: "At dawn",
+          tagList: ["sun", "time"],
+        },
+      },
+    });
+
+    expect(createdArticle.statusCode).to.equal(200);
+
+    const { article } = JSON.parse(createdArticle.payload) as {
+      article: ArticleResponse;
+    };
+    expect(article).to.be.an.object();
+    expect(article.slug).to.equal("When-the-sun-goes-up");
+    expect(article.body).to.equal("At dawn");
+    expect(article.author).to.be.an.object();
+    expect(article.author.username).to.equal("germione");
+  });
 });
