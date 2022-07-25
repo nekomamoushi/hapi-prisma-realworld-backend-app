@@ -1,6 +1,13 @@
 import Hapi, { AuthCredentials } from "@hapi/hapi";
 import Boom from "@hapi/boom";
 
+export interface ProfileResponse {
+  username: string;
+  bio: string;
+  image: string;
+  following: boolean;
+}
+
 async function getProfile(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   const { prisma } = request.server.app;
   const { username } = request.params;
