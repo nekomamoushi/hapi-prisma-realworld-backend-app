@@ -25,12 +25,12 @@
     "postgres:start": "docker-compose up -d",
     "postgres:stop": "docker-compose down",
     "prisma:generate": "prisma generate",
-    "test:postman": "NODE_ENV=test npx prisma migrate reset && newman run tests/conduit.collection.json -r cli,json --delay-request 50 --global-var APIURL=http://localhost:3001/api --global-var EMAIL=jeje@jeje.com --global-var PASSWORD=jeje --global-var USERNAME=jeje",
-    "test:status": "NODE_ENV=test npm run seed && lab --typescript -v tests/status.test.ts",
-    "test:users": "NODE_ENV=test npm run seed && lab --typescript -v tests/users.test.ts",
-    "test:profiles": "NODE_ENV=test npm run seed && lab --typescript -v tests/profiles.test.ts",
-    "test:articles": "NODE_ENV=test npm run seed && lab --typescript -v tests/articles.test.ts",
-    "test:tags": "NODE_ENV=test npm run seed && lab --typescript -v tests/tags.test.ts"
+    "test:postman": "NODE_ENV=test npx prisma migrate reset && newman run test/conduit.collection.json -r cli,json --delay-request 50 --global-var APIURL=http://localhost:3001/api --global-var EMAIL=jeje@jeje.com --global-var PASSWORD=jeje --global-var USERNAME=jeje",
+    "test:status": "NODE_ENV=test npm run seed && lab --typescript -v test/status.test.ts",
+    "test:users": "NODE_ENV=test npm run seed && lab --typescript -v test/users.test.ts",
+    "test:profiles": "NODE_ENV=test npm run seed && lab --typescript -v test/profiles.test.ts",
+    "test:articles": "NODE_ENV=test npm run seed && lab --typescript -v test/articles.test.ts",
+    "test:tags": "NODE_ENV=test npm run seed && lab --typescript -v test/tags.test.ts"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.0",
