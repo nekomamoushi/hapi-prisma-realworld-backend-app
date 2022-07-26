@@ -680,7 +680,7 @@
               ],
               "body":{
                 "mode":"raw",
-                "raw":"{\"article\":{\"title\":\"How to train your dragon\", \"description\":\"Ever wonder how?\", \"body\":\"Very carefully.\", \"tagList\":[\"training\", \"dragons\"]}}"
+                "raw":"{\"article\":{\"title\":\"How to train your dragon\", \"description\":\"Ever wonder how?\", \"body\":\"Very carefully.\", \"tagList\":[\"dragons\", \"training\"]}}"
               },
               "url":{
                 "raw":"{{APIURL}}/articles",
