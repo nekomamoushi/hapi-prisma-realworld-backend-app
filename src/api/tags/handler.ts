@@ -10,7 +10,9 @@ async function getTags(request: Hapi.Request, h: Hapi.ResponseToolkit) {
 
   try {
     const tags = await prisma.tag.findMany({ select: { tag: true } });
-    const response = tags.map((t) => t.tag);
+    const response: TagResponse = {
+      tags: tags.map((t) => t.tag),
+    };
     return h.response({ tags: response }).code(200);
   } catch (err: any) {
     request.log("error", err);
